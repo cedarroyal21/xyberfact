@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2, AlertTriangle, ShieldOff, Users, HeartPulse } from 'lucide-react';
 import Image from 'next/image';
 import { analyzeUrl } from '@/app/actions';
 import type { AnalysisState } from '@/lib/types';
@@ -106,7 +106,7 @@ export default function Home() {
         </section>
 
         <section className="max-w-4xl mx-auto mt-8 fade-in-up" style={{ animationDelay: '0.4s' }}>
-          <Card className="shadow-lg overflow-hidden">
+          <Card className="shadow-lg overflow-hidden rounded-xl">
             {heroImage && (
               <Image
                 src={heroImage.imageUrl}
@@ -154,6 +154,53 @@ export default function Home() {
         >
           {pending ? <LoadingSkeleton /> : state.data && <AnalysisResults result={state.data} />}
         </div>
+        
+        <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground font-headline">
+              {t('consequencesTitle')}
+            </h2>
+            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+              {t('consequencesSubtitle')}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div className="fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <div className="flex justify-center items-center mb-4">
+                <div className="bg-primary/10 text-primary p-4 rounded-full">
+                  <ShieldOff className="h-8 w-8" />
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">{t('erosionOfTrust')}</h3>
+              <p className="text-muted-foreground">{t('erosionOfTrustText')}</p>
+            </div>
+            <div className="fade-in-up" style={{ animationDelay: '0.4s' }}>
+              <div className="flex justify-center items-center mb-4">
+                <div className="bg-primary/10 text-primary p-4 rounded-full">
+                  <Users className="h-8 w-8" />
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">{t('socialPolarization')}</h3>
+              <p className="text-muted-foreground">{t('socialPolarizationText')}</p>
+            </div>
+            <div className="fade-in-up" style={{ animationDelay: '0.6s' }}>
+              <div className="flex justify-center items-center mb-4">
+                <div className="bg-primary/10 text-primary p-4 rounded-full">
+                  <HeartPulse className="h-8 w-8" />
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">{t('publicHealthRisks')}</h3>
+              <p className="text-muted-foreground">{t('publicHealthRisksText')}</p>
+            </div>
+          </div>
+          <div className="mt-16 text-center bg-card border rounded-xl p-8 shadow-sm">
+            <h3 className="text-2xl font-bold tracking-tight">{t('whyFactLensMatters')}</h3>
+            <p className="mt-3 max-w-3xl mx-auto text-muted-foreground">
+              {t('whyFactLensMattersText')}
+            </p>
+          </div>
+        </section>
+
       </div>
       <footer className="text-center p-4 text-sm text-muted-foreground">
         © {new Date().getFullYear()} {t('factlens')}. {t('allRightsReserved')}
