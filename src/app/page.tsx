@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useFormStatus } from 'react-dom';
 import { Loader2, AlertTriangle, Upload, Image as ImageIcon, FileText, ShieldOff, Users, HeartPulse, Flag } from 'lucide-react';
 import { analyzeUrl, analyzeImage } from '@/app/actions';
 import type { AnalysisState, ImageAnalysisState, ReportState } from '@/lib/types';
@@ -9,14 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import AnalysisResults from '@/components/factlens/analysis-results';
-import ImageAnalysisResult from '@/components/factlens/image-analysis-result';
-import { Header } from '@/components/factlens/header';
+import AnalysisResults from '@/components/xyberfact/analysis-results';
+import ImageAnalysisResult from '@/components/xyberfact/image-analysis-result';
+import { Header } from '@/components/xyberfact/header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/contexts/language-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DisinformationStats } from '@/components/factlens/disinformation-stats';
-import NewsSection from '@/components/factlens/news-section';
+import { DisinformationStats } from '@/components/xyberfact/disinformation-stats';
+import NewsSection from '@/components/xyberfact/news-section';
 import { useUser, useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
 import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
 import { Textarea } from '@/components/ui/textarea';
@@ -175,6 +174,7 @@ function ReportWebsiteForm() {
     }
 
     try {
+      if (!firestore) throw new Error('Firestore not initialized');
       const reportRef = collection(firestore, `users/${user.uid}/websiteReports`);
       const newReport = {
         url,
@@ -298,7 +298,9 @@ export default function Home() {
   
   useEffect(() => {
     if (!isUserLoading && !user) {
-      initiateAnonymousSignIn(auth);
+      if (auth) {
+        initiateAnonymousSignIn(auth);
+      }
     }
   }, [user, isUserLoading, auth]);
 
@@ -409,7 +411,7 @@ export default function Home() {
                 ) : (
                   <div className="text-center text-muted-foreground">
                     <p>{t('authRequiredToReport')}</p>
-                    <Button onClick={() => initiateAnonymousSignIn(auth)} className="mt-4">{t('signInAnonymously')}</Button>
+                    { auth && <Button onClick={() => initiateAnonymousSignIn(auth)} className="mt-4">{t('signInAnonymously')}</Button> }
                   </div>
                 )}
               </CardContent>
