@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2, AlertTriangle, Video } from 'lucide-react';
 import { analyzeUrl } from '@/app/actions';
+import { generateVideoAction } from '@/app/video-actions';
 import type { AnalysisState } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -66,6 +67,30 @@ export default function Home() {
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const { pending } = useFormStatus();
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [videoError, setVideoError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function generateVideo() {
+      setIsVideoLoading(true);
+      setVideoError(null);
+      try {
+        const result = await generateVideoAction(language);
+        if (result.url) {
+          setVideoUrl(result.url);
+        } else if (result.error) {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        console.error('Video generation failed:', error);
+        setVideoError(t('videoGenerationFailed'));
+      } finally {
+        setIsVideoLoading(false);
+      }
+    }
+    generateVideo();
+  }, [language, t]);
 
   useEffect(() => {
     if (state.error) {
@@ -77,13 +102,12 @@ export default function Home() {
     }
   }, [state, toast, t]);
 
-  // Reset form when new analysis is complete
   useEffect(() => {
     if (state.data && !pending) {
       formRef.current?.reset();
     }
   }, [state.data, pending]);
-  
+
   return (
     <main className="flex flex-col min-h-screen bg-background">
       <Header />
@@ -92,12 +116,45 @@ export default function Home() {
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-foreground font-headline fade-in-up">
             {t('uncoverTruth')}
           </h1>
-          <p className="mt-4 text-lg md:text-xl text-muted-foreground fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <p
+            className="mt-4 text-lg md:text-xl text-muted-foreground fade-in-up"
+            style={{ animationDelay: '0.2s' }}
+          >
             {t('subheading')}
           </p>
         </section>
 
-        <Card className="max-w-3xl mx-auto mt-8 shadow-lg fade-in-up" style={{ animationDelay: '0.4s' }}>
+        <section className="max-w-4xl mx-auto mt-8 fade-in-up" style={{ animationDelay: '0.4s' }}>
+          <Card className="shadow-lg overflow-hidden">
+            {isVideoLoading && (
+               <div className="aspect-video bg-muted flex flex-col items-center justify-center">
+                 <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                 <p className="mt-4 text-muted-foreground">{t('generatingVideo')}</p>
+               </div>
+            )}
+            {videoError && !isVideoLoading && (
+              <div className="aspect-video bg-muted flex flex-col items-center justify-center">
+                <AlertTriangle className="h-12 w-12 text-destructive" />
+                <p className="mt-4 text-destructive">{videoError}</p>
+              </div>
+            )}
+            {videoUrl && !isVideoLoading && (
+              <video
+                src={videoUrl}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+              />
+            )}
+          </Card>
+        </section>
+
+        <Card
+          className="max-w-3xl mx-auto mt-8 shadow-lg fade-in-up"
+          style={{ animationDelay: '0.6s' }}
+        >
           <CardContent className="p-6">
             <form ref={formRef} action={formAction} className="space-y-4">
               <input type="hidden" name="language" value={language} />
@@ -121,8 +178,11 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <div className="max-w-6xl mx-auto mt-8 fade-in" style={{ animationDelay: '0.6s' }}>
-            {pending ? <LoadingSkeleton /> : state.data && <AnalysisResults result={state.data} />}
+        <div
+          className="max-w-6xl mx-auto mt-8 fade-in"
+          style={{ animationDelay: '0.8s' }}
+        >
+          {pending ? <LoadingSkeleton /> : state.data && <AnalysisResults result={state.data} />}
         </div>
       </div>
       <footer className="text-center p-4 text-sm text-muted-foreground">

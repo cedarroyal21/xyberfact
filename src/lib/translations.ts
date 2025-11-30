@@ -19,7 +19,9 @@ export const translations = {
     lowTrust: 'Low Trust',
     overallReliability: 'Overall Reliability Score',
     evaluationRationale: 'Evaluation Rationale',
-    factlens: 'FactLens'
+    factlens: 'FactLens',
+    generatingVideo: 'Generating illustrative video...',
+    videoGenerationFailed: 'Video generation failed. Please try again later.',
   },
   fr: {
     uncoverTruth: 'Découvrez la vérité en un clic',
@@ -41,7 +43,9 @@ export const translations = {
     lowTrust: 'Faible confiance',
     overallReliability: 'Score de fiabilité global',
     evaluationRationale: "Justification de l'évaluation",
-    factlens: 'FactLens'
+    factlens: 'FactLens',
+    generatingVideo: 'Génération de la vidéo illustrative...',
+    videoGenerationFailed: 'La génération de la vidéo a échoué. Veuillez réessayer plus tard.',
   },
   es: {
     uncoverTruth: 'Descubre la verdad en un clic',
@@ -63,7 +67,9 @@ export const translations = {
     lowTrust: 'Confianza baja',
     overallReliability: 'Puntuación de fiabilidad general',
     evaluationRationale: 'Justificación de la evaluación',
-    factlens: 'FactLens'
+    factlens: 'FactLens',
+    generatingVideo: 'Generando video ilustrativo...',
+    videoGenerationFailed: 'La generación del video falló. Por favor, inténtelo de nuevo más tarde.',
   }
 };
 
