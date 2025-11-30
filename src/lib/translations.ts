@@ -32,6 +32,9 @@ export const translations = {
     publicHealthRisksText: 'Health-related falsehoods can lead to dangerous decisions and undermine collective well-being.',
     whyFactLensMatters: 'Why FactLens Matters',
     whyFactLensMattersText: 'In a world flooded with information, FactLens is your essential tool for navigating the digital landscape with confidence. We empower you to make informed decisions by providing clear, unbiased, and instant analysis of online content.',
+    developedBy: 'A Xyberclan Product',
+    xyberclanMission: 'FactLens is proudly developed by Xyberclan, a Cameroonian startup dedicated to making the digital landscape safer for everyone. Visit our website to learn more about our mission.',
+    visitXyberclan: 'Visit Xyberclan',
   },
   fr: {
     uncoverTruth: 'Découvrez la vérité en un clic',
@@ -61,11 +64,14 @@ export const translations = {
     erosionOfTrust: 'Érosion de la confiance',
     erosionOfTrustText: 'Les récits mensongers affaiblissent la confiance dans les médias, la science et les institutions démocratiques.',
     socialPolarization: 'Polarisation sociale',
-    socialPolarizationText: 'Les chambres d\'écho alimentées par les fausses nouvelles creusent les divisions sociales et l\'hostilité.',
+    socialPolarizationText: "Les chambres d'écho alimentées par les fausses nouvelles creusent les divisions sociales et l'hostilité.",
     publicHealthRisks: 'Risques pour la santé publique',
     publicHealthRisksText: 'Les faussetés liées à la santé peuvent conduire à des décisions dangereuses et nuire au bien-être collectif.',
     whyFactLensMatters: 'Pourquoi FactLens est Important',
     whyFactLensMattersText: "Dans un monde inondé d'informations, FactLens est votre outil essentiel pour naviguer dans le paysage numérique avec confiance. Nous vous donnons les moyens de prendre des décisions éclairées en fournissant une analyse claire, impartiale et instantanée du contenu en ligne.",
+    developedBy: 'Un produit de Xyberclan',
+    xyberclanMission: "FactLens est fièrement développé par Xyberclan, une startup camerounaise dédiée à rendre le paysage numérique plus sûr pour tous. Visitez notre site web pour en savoir plus sur notre mission.",
+    visitXyberclan: 'Visiter Xyberclan',
   },
   es: {
     uncoverTruth: 'Descubre la verdad en un clic',
@@ -87,7 +93,7 @@ export const translations = {
     lowTrust: 'Confianza baja',
     overallReliability: 'Puntuación de fiabilidad general',
     evaluationRationale: 'Justificación de la evaluación',
-    factlens: 'FactLens',
+factlens: 'FactLens',
     generatingVideo: 'Generando video ilustrativo...',
     videoGenerationFailed: 'La generación del video falló. Por favor, inténtelo de nuevo más tarde.',
     consequencesTitle: 'Los Peligros de la Desinformación',
@@ -100,6 +106,9 @@ export const translations = {
     publicHealthRisksText: 'Las falsedades relacionadas con la salud pueden llevar a decisiones peligrosas y socavar el bienestar colectivo.',
     whyFactLensMatters: 'Por qué Importa FactLens',
     whyFactLensMattersText: 'En un mundo inundado de información, FactLens es su herramienta esencial para navegar por el panorama digital con confianza. Le capacitamos para tomar decisiones informadas proporcionando un análisis claro, imparcial e instantáneo del contenido en línea.',
+    developedBy: 'Un producto de Xyberclan',
+    xyberclanMission: 'FactLens es desarrollado con orgullo por Xyberclan, una startup camerunesa dedicada a hacer el panorama digital más seguro para todos. Visite nuestro sitio web para obtener más información sobre nuestra misión.',
+    visitXyberclan: 'Visitar Xyberclan',
   }
 };
 

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { Loader2, AlertTriangle, ShieldOff, Users, HeartPulse } from 'lucide-react';
+import { Loader2, AlertTriangle, ShieldOff, Users, HeartPulse, ArrowRight } from 'lucide-react';
 import { analyzeUrl } from '@/app/actions';
 import type { AnalysisState } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -177,6 +177,21 @@ export default function Home() {
             <p className="mt-3 max-w-3xl mx-auto text-muted-foreground">
               {t('whyFactLensMattersText')}
             </p>
+          </div>
+        </section>
+
+        <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12 text-center">
+          <div className="bg-card border rounded-xl p-8 shadow-sm">
+            <h3 className="text-2xl font-bold tracking-tight">{t('developedBy')}</h3>
+            <p className="mt-3 max-w-3xl mx-auto text-muted-foreground">
+              {t('xyberclanMission')}
+            </p>
+            <Button asChild className="mt-6">
+              <a href="https://xyberclan-saas-website.vercel.app/" target="_blank" rel="noopener noreferrer">
+                {t('visitXyberclan')}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </a>
+            </Button>
           </div>
         </section>
 
