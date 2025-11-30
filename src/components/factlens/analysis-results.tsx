@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrustScoreDisplay } from './trust-score-display';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Megaphone, Scale, ShieldQuestion, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { useLanguage } from '@/contexts/language-context';
 
 interface AnalysisResultsProps {
   result: AnalysisResult;
@@ -16,6 +17,7 @@ interface AnalysisResultsProps {
 
 export default function AnalysisResults({ result }: AnalysisResultsProps) {
   const { reliability, analysis, verification } = result;
+  const { t } = useLanguage();
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -31,7 +33,7 @@ export default function AnalysisResults({ result }: AnalysisResultsProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="text-primary" />
-              Content Breakdown
+              {t('contentBreakdown')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -39,7 +41,7 @@ export default function AnalysisResults({ result }: AnalysisResultsProps) {
             <Accordion type="multiple" className="w-full">
               <AccordionItem value="key-claims">
                 <AccordionTrigger className="text-base font-semibold">
-                  <Megaphone className="mr-2 h-5 w-5 text-primary" /> Key Claims
+                  <Megaphone className="mr-2 h-5 w-5 text-primary" /> {t('keyClaims')}
                 </AccordionTrigger>
                 <AccordionContent>
                   <ul className="list-disc space-y-2 pl-6">
@@ -51,7 +53,7 @@ export default function AnalysisResults({ result }: AnalysisResultsProps) {
               </AccordionItem>
               <AccordionItem value="arguments">
                 <AccordionTrigger className="text-base font-semibold">
-                  <Scale className="mr-2 h-5 w-5 text-primary" /> Main Arguments
+                  <Scale className="mr-2 h-5 w-5 text-primary" /> {t('mainArguments')}
                 </AccordionTrigger>
                 <AccordionContent>
                   <ul className="list-disc space-y-2 pl-6">
@@ -69,16 +71,16 @@ export default function AnalysisResults({ result }: AnalysisResultsProps) {
            <CardHeader>
              <CardTitle className="flex items-center gap-2">
               <ShieldQuestion className="text-primary" />
-               Fact-Check & Bias Analysis
+               {t('factCheckAnalysis')}
              </CardTitle>
            </CardHeader>
            <CardContent className="space-y-4">
               <div>
-                <h3 className="font-semibold flex items-center gap-2"><ThumbsUp className="h-5 w-5 text-green-600"/> Factuality Assessment</h3>
+                <h3 className="font-semibold flex items-center gap-2"><ThumbsUp className="h-5 w-5 text-green-600"/> {t('factualityAssessment')}</h3>
                 <p className="text-muted-foreground mt-1">{verification.factualityAssessment}</p>
               </div>
               <div>
-                <h3 className="font-semibold flex items-center gap-2"><ThumbsDown className="h-5 w-5 text-destructive"/> Potential Biases</h3>
+                <h3 className="font-semibold flex items-center gap-2"><ThumbsDown className="h-5 w-5 text-destructive"/> {t('potentialBiases')}</h3>
                 <p className="text-muted-foreground mt-1">{verification.potentialBiases}</p>
               </div>
            </CardContent>

@@ -12,21 +12,23 @@ import { useToast } from '@/hooks/use-toast';
 import AnalysisResults from '@/components/factlens/analysis-results';
 import { Header } from '@/components/factlens/header';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useLanguage } from '@/contexts/language-context';
 
 const initialState: AnalysisState = {};
 
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const { t } = useLanguage();
 
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto">
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Analyzing...
+          {t('analyzing')}
         </>
       ) : (
-        'Analyze'
+        t('analyze')
       )}
     </Button>
   );
@@ -59,6 +61,7 @@ const LoadingSkeleton = () => (
 );
 
 export default function Home() {
+  const { t } = useLanguage();
   const [state, formAction] = useFormState(analyzeUrl, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -68,11 +71,11 @@ export default function Home() {
     if (state.error) {
       toast({
         variant: 'destructive',
-        title: 'Analysis Failed',
+        title: t('analysisFailed'),
         description: state.error,
       });
     }
-  }, [state, toast]);
+  }, [state, toast, t]);
 
   // Reset form when new analysis is complete
   useEffect(() => {
@@ -87,10 +90,10 @@ export default function Home() {
       <div className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <section className="text-center max-w-3xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-foreground font-headline">
-            Uncover the Truth in a Click
+            {t('uncoverTruth')}
           </h1>
           <p className="mt-4 text-lg md:text-xl text-muted-foreground">
-            Our AI-powered tool analyzes web pages to evaluate source reliability, verify claims, and expose potential bias. Paste a URL to start.
+            {t('subheading')}
           </p>
         </section>
 
@@ -101,7 +104,7 @@ export default function Home() {
                 <Input
                   name="url"
                   type="url"
-                  placeholder="https://example.com/article"
+                  placeholder={t('placeholder')}
                   required
                   className="flex-grow text-base"
                 />
@@ -122,7 +125,7 @@ export default function Home() {
         </div>
       </div>
       <footer className="text-center p-4 text-sm text-muted-foreground">
-        © {new Date().getFullYear()} FactLens. All rights reserved.
+        © {new Date().getFullYear()} {t('factlens')}. {t('allRightsReserved')}
       </footer>
     </main>
   );

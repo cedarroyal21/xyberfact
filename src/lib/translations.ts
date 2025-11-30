@@ -1,0 +1,48 @@
+export const translations = {
+  en: {
+    uncoverTruth: 'Uncover the Truth in a Click',
+    subheading: 'Our AI-powered tool analyzes web pages to evaluate source reliability, verify claims, and expose potential bias. Paste a URL to start.',
+    analyze: 'Analyze',
+    analyzing: 'Analyzing...',
+    placeholder: 'https://example.com/article',
+    analysisFailed: 'Analysis Failed',
+    allRightsReserved: 'All rights reserved.',
+    contentBreakdown: 'Content Breakdown',
+    keyClaims: 'Key Claims',
+    mainArguments: 'Main Arguments',
+    factCheckAnalysis: 'Fact-Check & Bias Analysis',
+    factualityAssessment: 'Factuality Assessment',
+    potentialBiases: 'Potential Biases',
+    trustScore: 'Trust Score',
+    highTrust: 'High Trust',
+    mediumTrust: 'Medium Trust',
+    lowTrust: 'Low Trust',
+    overallReliability: 'Overall Reliability Score',
+    evaluationRationale: 'Evaluation Rationale',
+    factlens: 'FactLens'
+  },
+  fr: {
+    uncoverTruth: 'Découvrez la vérité en un clic',
+    subheading: 'Notre outil alimenté par l\'IA analyse les pages Web pour évaluer la fiabilité des sources, vérifier les affirmations et exposer les biais potentiels. Collez une URL pour commencer.',
+    analyze: 'Analyser',
+    analyzing: 'Analyse en cours...',
+    placeholder: 'https://exemple.com/article',
+    analysisFailed: 'L\'analyse a échoué',
+    allRightsReserved: 'Tous droits réservés.',
+    contentBreakdown: 'Répartition du contenu',
+    keyClaims: 'Revendications clés',
+    mainArguments: 'Arguments principaux',
+    factCheckAnalysis: 'Vérification des faits et analyse des biais',
+    factualityAssessment: 'Évaluation de la factualité',
+    potentialBiases: 'Biais potentiels',
+    trustScore: 'Score de confiance',
+    highTrust: 'Confiance élevée',
+    mediumTrust: 'Confiance moyenne',
+    lowTrust: 'Faible confiance',
+    overallReliability: 'Score de fiabilité global',
+    evaluationRationale: 'Justification de l\'évaluation',
+    factlens: 'FactLens'
+  },
+};
+
+export type TranslationKey = keyof (typeof translations)['en'];

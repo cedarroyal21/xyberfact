@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn, getScoreColor } from '@/lib/utils';
 import { ShieldCheck } from 'lucide-react';
+import { useLanguage } from '@/contexts/language-context';
 
 interface TrustScoreDisplayProps {
   score: number;
@@ -47,27 +48,29 @@ const CircularProgress = ({ score, className }: { score: number; className?: str
 };
 
 export function TrustScoreDisplay({ score, rationale }: TrustScoreDisplayProps) {
+  const { t } = useLanguage();
   const colorClass = getScoreColor(score);
   
-  const trustLevel =
-    score >= 70 ? 'High Trust' : score >= 40 ? 'Medium Trust' : 'Low Trust';
+  const trustLevelKey =
+    score >= 70 ? 'highTrust' : score >= 40 ? 'mediumTrust' : 'lowTrust';
+  const trustLevel = t(trustLevelKey);
 
   return (
     <Card className="shadow-lg">
       <CardHeader className="items-center text-center">
         <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="text-primary"/>
-            Trust Score
+            {t('trustScore')}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center text-center space-y-4">
         <CircularProgress score={score} className={colorClass} />
         <div className="pt-2">
             <p className={cn("text-2xl font-bold", colorClass)}>{trustLevel}</p>
-            <p className="text-sm text-muted-foreground">Overall Reliability Score</p>
+            <p className="text-sm text-muted-foreground">{t('overallReliability')}</p>
         </div>
         <div>
-            <h4 className="font-semibold text-left">Evaluation Rationale</h4>
+            <h4 className="font-semibold text-left">{t('evaluationRationale')}</h4>
             <p className="text-muted-foreground text-left text-sm mt-1">{rationale}</p>
         </div>
       </CardContent>
