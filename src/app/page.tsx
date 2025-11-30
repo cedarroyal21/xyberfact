@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useFormStatus, useActionState } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { Loader2, AlertTriangle, Upload, Image as ImageIcon, FileText, ShieldOff, Users, HeartPulse, Flag } from 'lucide-react';
-import { analyzeUrl, analyzeImage, reportWebsite } from '@/app/actions';
+import { analyzeUrl, analyzeImage } from '@/app/actions';
 import type { AnalysisState, ImageAnalysisState, ReportState } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,9 +17,10 @@ import { useLanguage } from '@/contexts/language-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DisinformationStats } from '@/components/factlens/disinformation-stats';
 import NewsSection from '@/components/factlens/news-section';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
 import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
 import { Textarea } from '@/components/ui/textarea';
+import { collection } from 'firebase/firestore';
 
 const initialUrlState: AnalysisState = {};
 const initialImageState: ImageAnalysisState = {};
@@ -154,12 +155,60 @@ function ImageUploadForm({ language }: { language: string }) {
 }
 
 function ReportWebsiteForm() {
-  const { t, language } = useLanguage();
-  const [state, formAction] = useActionState(reportWebsite, initialReportState);
-  const { pending } = useFormStatus();
+  const { t } = useLanguage();
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [state, setState] = useState<ReportState>(initialReportState);
+  const [isPending, setIsPending] = useState(false);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
+  const reportWebsite = async (formData: FormData): Promise<ReportState> => {
+    const url = formData.get('url') as string;
+    const description = formData.get('description') as string;
+
+    if (!user) {
+      return { error: 'Authentication is required to submit a report.' };
+    }
+     if (!url || !description) {
+      return { error: 'Please fill out all fields.' };
+    }
+
+    try {
+      const reportRef = collection(firestore, `users/${user.uid}/websiteReports`);
+      const newReport = {
+        url,
+        description,
+        reporterId: user.uid,
+        reportDate: new Date().toISOString(),
+        reason: 'User-reported',
+        status: 'pending',
+      };
+      
+      const docRef = await addDocumentNonBlocking(reportRef, newReport);
+      
+      // Update with the generated ID.
+      // This is a non-blocking update as well.
+      // updateDocumentNonBlocking(docRef, { id: docRef.id });
+
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+      return { error: message };
+    }
+  }
+
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsPending(true);
+    setState(initialReportState);
+    const formData = new FormData(event.currentTarget);
+    const result = await reportWebsite(formData);
+    setState(result);
+    setIsPending(false);
+  };
+  
   useEffect(() => {
     if (state?.success) {
       toast({
@@ -177,8 +226,7 @@ function ReportWebsiteForm() {
   }, [state, toast, t]);
   
   return (
-    <form ref={formRef} action={formAction} className="space-y-4">
-      <input type="hidden" name="language" value={language} />
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
       <Input
         name="url"
         type="url"
@@ -192,8 +240,8 @@ function ReportWebsiteForm() {
         required
         className="text-base"
       />
-       <Button type="submit" disabled={pending} className="w-full">
-        {pending ? (
+       <Button type="submit" disabled={isPending} className="w-full">
+        {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             {t('submittingReport')}
@@ -202,7 +250,7 @@ function ReportWebsiteForm() {
           t('submitReport')
         )}
       </Button>
-       {state?.error && (
+       {state?.error && !isPending && (
         <p className="text-sm text-destructive flex items-center gap-2">
           <AlertTriangle className="h-4 w-4" />
           {state.error}
