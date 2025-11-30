@@ -31,15 +31,11 @@ const nextConfig: NextConfig = {
     ],
   },
   serverActions: {
-    bodySizeLimit: '2mb',
-    // Increase timeout for slow AI operations
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
-    // Extend the timeout for video generation
-    experimental: {
-      serverActionsTimeout: 120, // 2 minutes
-    },
+    bodySizeLimit: '10mb',
+  },
+  // Extend the timeout for video generation
+  experimental: {
+    serverActionsTimeout: 120, // 2 minutes
   },
 };
 
