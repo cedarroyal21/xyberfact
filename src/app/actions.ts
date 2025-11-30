@@ -5,10 +5,16 @@ import { z } from 'zod';
 import { analyzeWebpageContent } from '@/ai/flows/analyze-webpage-content';
 import { verifyFactualityOfClaims } from '@/ai/flows/verify-factuality-of-claims';
 import { evaluateSourceReliability } from '@/ai/flows/evaluate-source-reliability';
-import type { AnalysisState } from '@/lib/types';
+import { analyzeImageOrigin } from '@/ai/flows/analyze-image-origin';
+import type { AnalysisState, ImageAnalysisState } from '@/lib/types';
 
-const FormSchema = z.object({
+const UrlFormSchema = z.object({
   url: z.string().url({ message: 'Please enter a valid URL.' }),
+  language: z.enum(['en', 'fr', 'es']),
+});
+
+const ImageFormSchema = z.object({
+  image: z.string().startsWith('data:image/'),
   language: z.enum(['en', 'fr', 'es']),
 });
 
@@ -16,7 +22,7 @@ export async function analyzeUrl(
   prevState: AnalysisState,
   formData: FormData
 ): Promise<AnalysisState> {
-  const validatedFields = FormSchema.safeParse({
+  const validatedFields = UrlFormSchema.safeParse({
     url: formData.get('url'),
     language: formData.get('language'),
   });
@@ -68,6 +74,35 @@ export async function analyzeUrl(
     };
   } catch (e) {
     if (e instanceof Error && e.name === 'AbortError') {
+      return { error: 'The request timed out. The server might be slow or unreachable.' };
+    }
+    return { error: e instanceof Error ? e.message : 'An unknown error occurred during analysis.' };
+  }
+}
+
+
+export async function analyzeImage(
+  prevState: ImageAnalysisState,
+  formData: FormData
+): Promise<ImageAnalysisState> {
+  const validatedFields = ImageFormSchema.safeParse({
+    image: formData.get('image'),
+    language: formData.get('language'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      error: validatedFields.error.errors.map((e) => e.message).join(', '),
+    };
+  }
+
+  const { image: imageDataUri, language } = validatedFields.data;
+
+  try {
+    const result = await analyzeImageOrigin({ imageDataUri, language });
+    return { data: result };
+  } catch (e) {
+     if (e instanceof Error && e.name === 'AbortError') {
       return { error: 'The request timed out. The server might be slow or unreachable.' };
     }
     return { error: e instanceof Error ? e.message : 'An unknown error occurred during analysis.' };

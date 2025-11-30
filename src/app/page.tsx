@@ -1,22 +1,25 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { Loader2, AlertTriangle, ShieldOff, Users, HeartPulse, ArrowRight } from 'lucide-react';
-import { analyzeUrl } from '@/app/actions';
-import type { AnalysisState } from '@/lib/types';
+import { Loader2, AlertTriangle, ShieldOff, Users, HeartPulse, ArrowRight, Upload, Image as ImageIcon, FileText } from 'lucide-react';
+import { analyzeUrl, analyzeImage } from '@/app/actions';
+import type { AnalysisState, ImageAnalysisState } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import AnalysisResults from '@/components/factlens/analysis-results';
+import ImageAnalysisResult from '@/components/factlens/image-analysis-result';
 import { Header } from '@/components/factlens/header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/contexts/language-context';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-const initialState: AnalysisState = {};
+const initialUrlState: AnalysisState = {};
+const initialImageState: ImageAnalysisState = {};
 
-function SubmitButton() {
+function UrlSubmitButton() {
   const { pending } = useFormStatus();
   const { t } = useLanguage();
 
@@ -29,6 +32,24 @@ function SubmitButton() {
         </>
       ) : (
         t('analyze')
+      )}
+    </Button>
+  );
+}
+
+function ImageSubmitButton() {
+  const { pending } = useFormStatus();
+  const { t } = useLanguage();
+
+  return (
+    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          {t('analyzingImage')}
+        </>
+      ) : (
+        t('analyzeImage')
       )}
     </Button>
   );
@@ -60,28 +81,135 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-export default function Home() {
-  const { t, language } = useLanguage();
-  const [state, formAction] = useFormState(analyzeUrl, initialState);
+function ImageUploadForm({ language }: { language: string }) {
+  const [imageState, formAction] = useFormState(analyzeImage, initialImageState);
   const { toast } = useToast();
-  const formRef = React.useRef<HTMLFormElement>(null);
+  const { t } = useLanguage();
+  const formRef = useRef<HTMLFormElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [hiddenImageData, setHiddenImageData] = useState<string>('');
   const { pending } = useFormStatus();
 
   useEffect(() => {
-    if (state.error) {
+    if (imageState.error) {
       toast({
         variant: 'destructive',
         title: t('analysisFailed'),
-        description: state.error,
+        description: imageState.error,
       });
     }
-  }, [state, toast, t]);
+  }, [imageState, toast, t]);
 
   useEffect(() => {
-    if (state.data && !pending) {
+    if (imageState.data && !pending) {
       formRef.current?.reset();
+      setImagePreview(null);
+      setHiddenImageData('');
     }
-  }, [state.data, pending]);
+  }, [imageState.data, pending]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUri = reader.result as string;
+        setImagePreview(dataUri);
+        setHiddenImageData(dataUri);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUri = reader.result as string;
+        setImagePreview(dataUri);
+        setHiddenImageData(dataUri);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+  };
+
+  return (
+    <div>
+      <form ref={formRef} action={formAction} className="space-y-4">
+        <input type="hidden" name="language" value={language} />
+        <input type="hidden" name="image" value={hiddenImageData} />
+        
+        <label
+          htmlFor="image-upload"
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          className="relative block w-full border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors"
+        >
+          {imagePreview ? (
+            <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto rounded-md" />
+          ) : (
+            <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+              <Upload className="h-10 w-10" />
+              <p>{t('dragAndDrop')}</p>
+              <p className="text-sm">{t('orClickToUpload')}</p>
+            </div>
+          )}
+        </label>
+        <Input
+          id="image-upload"
+          ref={fileInputRef}
+          name="image-file"
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="hidden"
+        />
+
+        <div className="flex justify-center">
+          <ImageSubmitButton />
+        </div>
+
+        {imageState.error && !pending && (
+          <p className="text-sm text-destructive flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            {imageState.error}
+          </p>
+        )}
+      </form>
+      {pending ? <LoadingSkeleton /> : imageState.data && <ImageAnalysisResult result={imageState.data} preview={imagePreview} />}
+    </div>
+  );
+}
+
+export default function Home() {
+  const { t, language } = useLanguage();
+  const [urlState, urlFormAction] = useFormState(analyzeUrl, initialUrlState);
+  const { toast } = useToast();
+  const urlFormRef = React.useRef<HTMLFormElement>(null);
+  const { pending: urlPending } = useFormStatus();
+
+  useEffect(() => {
+    if (urlState.error) {
+      toast({
+        variant: 'destructive',
+        title: t('analysisFailed'),
+        description: urlState.error,
+      });
+    }
+  }, [urlState, toast, t]);
+  
+  useEffect(() => {
+    if (urlState.data && !urlPending) {
+      urlFormRef.current?.reset();
+    }
+  }, [urlState.data, urlPending]);
 
 
   return (
@@ -100,38 +228,56 @@ export default function Home() {
           </p>
         </section>
 
-        <Card
-          className="max-w-3xl mx-auto mt-8 shadow-lg fade-in-up"
-          style={{ animationDelay: '0.6s' }}
-        >
-          <CardContent className="p-6">
-            <form ref={formRef} action={formAction} className="space-y-4">
-              <input type="hidden" name="language" value={language} />
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                  name="url"
-                  type="url"
-                  placeholder={t('placeholder')}
-                  required
-                  className="flex-grow text-base"
-                />
-                <SubmitButton />
-              </div>
-              {state.error && !pending && (
-                <p className="text-sm text-destructive flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  {state.error}
-                </p>
-              )}
-            </form>
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="url" className="max-w-3xl mx-auto mt-8 fade-in-up" style={{ animationDelay: '0.6s' }}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="url">
+              <FileText className="mr-2 h-4 w-4" />
+              {t('analyzeUrl')}
+            </TabsTrigger>
+            <TabsTrigger value="image">
+              <ImageIcon className="mr-2 h-4 w-4" />
+              {t('analyzeImage')}
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="url">
+            <Card>
+              <CardContent className="p-6">
+                <form ref={urlFormRef} action={urlFormAction} className="space-y-4">
+                  <input type="hidden" name="language" value={language} />
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                      name="url"
+                      type="url"
+                      placeholder={t('placeholder')}
+                      required
+                      className="flex-grow text-base"
+                    />
+                    <UrlSubmitButton />
+                  </div>
+                  {urlState.error && !urlPending && (
+                    <p className="text-sm text-destructive flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      {urlState.error}
+                    </p>
+                  )}
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="image">
+             <Card>
+              <CardContent className="p-6">
+                <ImageUploadForm language={language} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <div
           className="max-w-6xl mx-auto mt-8 fade-in"
           style={{ animationDelay: '0.8s' }}
         >
-          {pending ? <LoadingSkeleton /> : state.data && <AnalysisResults result={state.data} />}
+          {urlPending ? <LoadingSkeleton /> : urlState.data && <AnalysisResults result={urlState.data} />}
         </div>
         
         <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12">

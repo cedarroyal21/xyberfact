@@ -1,6 +1,7 @@
 import type { AnalyzeWebpageContentOutput } from '@/ai/flows/analyze-webpage-content';
 import type { VerifyFactualityOfClaimsOutput } from '@/ai/flows/verify-factuality-of-claims';
 import type { EvaluateSourceReliabilityOutput } from '@/ai/flows/evaluate-source-reliability';
+import type { AnalyzeImageOriginOutput } from '@/ai/flows/analyze-image-origin';
 
 export type AnalysisResult = {
   analysis: AnalyzeWebpageContentOutput;
@@ -10,5 +11,10 @@ export type AnalysisResult = {
 
 export type AnalysisState = {
   data?: AnalysisResult;
+  error?: string;
+};
+
+export type ImageAnalysisState = {
+  data?: AnalyzeImageOriginOutput;
   error?: string;
 };
