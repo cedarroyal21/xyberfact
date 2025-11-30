@@ -5,7 +5,7 @@ import { LanguageProvider } from '@/contexts/language-context';
 import { ThemeProvider } from '@/contexts/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'FactLens',
+  title: 'XyberFact',
   description: 'Verify the truthfulness of online information.',
 };
 
