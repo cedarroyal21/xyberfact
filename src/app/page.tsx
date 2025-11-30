@@ -15,80 +15,18 @@ import { Header } from '@/components/factlens/header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/contexts/language-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DisinformationStats } from '@/components/factlens/disinformation-stats';
 
 const initialUrlState: AnalysisState = {};
 const initialImageState: ImageAnalysisState = {};
 
-function UrlSubmitButton() {
-  const { pending } = useFormStatus();
-  const { t } = useLanguage();
-
-  return (
-    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          {t('analyzing')}
-        </>
-      ) : (
-        t('analyze')
-      )}
-    </Button>
-  );
-}
-
-function ImageSubmitButton() {
-  const { pending } = useFormStatus();
-  const { t } = useLanguage();
-  return (
-    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          {t('analyzingImage')}
-        </>
-      ) : (
-        t('analyzeImage')
-      )}
-    </Button>
-  );
-}
-
-
-const LoadingSkeleton = () => (
-  <div className="space-y-8 animate-pulse mt-12">
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <Card className="md:col-span-1">
-        <CardContent className="p-6">
-          <div className="flex flex-col items-center space-y-4">
-            <Skeleton className="h-32 w-32 rounded-full" />
-            <Skeleton className="h-8 w-24" />
-            <Skeleton className="h-6 w-32" />
-            <div className="w-full space-y-2 pt-4">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-5/6" />
-              <Skeleton className="h-4 w-full" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <div className="md:col-span-2 space-y-4">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-      </div>
-    </div>
-  </div>
-);
-
 function ImageUploadForm({ language }: { language: string }) {
-  const [imageState, setImageState] = useState<ImageAnalysisState>(initialImageState);
   const { toast } = useToast();
   const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const formRef = useRef<HTMLFormElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+  const [imageState, setImageState] = useState<ImageAnalysisState>(initialImageState);
 
   useEffect(() => {
     if (imageState.error) {
@@ -106,7 +44,7 @@ function ImageUploadForm({ language }: { language: string }) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
-        setImageState(initialImageState); // Reset previous results
+        setImageState(initialImageState);
       };
       reader.readAsDataURL(file);
     }
@@ -125,12 +63,15 @@ function ImageUploadForm({ language }: { language: string }) {
     e.preventDefault();
   };
   
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setIsPending(true);
-    setImageState(initialImageState); // Clear previous state
-    
+    setImageState(initialImageState); 
+
+    const formData = new FormData(event.currentTarget);
     const file = formData.get('image-file') as File;
-    if (!file) {
+    
+    if (!file || !file.type.startsWith('image/')) {
       setImageState({ error: 'No image selected.' });
       setIsPending(false);
       return;
@@ -155,7 +96,7 @@ function ImageUploadForm({ language }: { language: string }) {
   }
 
   return (
-    <form ref={formRef} action={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <label
         htmlFor="image-upload"
         onDrop={handleDrop}
@@ -207,6 +148,31 @@ function ImageUploadForm({ language }: { language: string }) {
   );
 }
 
+const LoadingSkeleton = () => (
+  <div className="space-y-8 animate-pulse mt-12">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <Card className="md:col-span-1">
+        <CardContent className="p-6">
+          <div className="flex flex-col items-center space-y-4">
+            <Skeleton className="h-32 w-32 rounded-full" />
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-6 w-32" />
+            <div className="w-full space-y-2 pt-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <div className="md:col-span-2 space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+      </div>
+    </div>
+  </div>
+);
 
 export default function Home() {
   const { t, language } = useLanguage();
@@ -356,6 +322,10 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12">
+          <DisinformationStats />
+        </section>
+
         <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12 text-center">
           <div className="bg-card border rounded-xl p-8 shadow-sm">
             <h3 className="text-2xl font-bold tracking-tight">{t('developedBy')}</h3>
@@ -377,5 +347,3 @@ export default function Home() {
     </main>
   );
 }
-
-    

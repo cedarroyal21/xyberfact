@@ -48,6 +48,12 @@ export const translations = {
     confidenceLevel: 'Confidence Level',
     confidenceExplanation: 'This score represents our AI\'s confidence in its assessment of the image\'s origin.',
     assessmentRationale: 'Assessment Rationale',
+    disinformationStatsTitle: 'The State of Disinformation',
+    disinformationStatsSubtitle: 'A brief overview of the alarming exposure to false information in our digital world.',
+    cameroon: 'Cameroon',
+    africa: 'Africa',
+    world: 'World',
+    exposurePercentage: 'Exposure to Disinformation (%)',
   },
   fr: {
     uncoverTruth: 'Découvrez la vérité en un clic',
@@ -98,6 +104,12 @@ export const translations = {
     confidenceLevel: 'Niveau de Confiance',
     confidenceExplanation: 'Ce score représente la confiance de notre IA dans son évaluation de l\'origine de l\'image.',
     assessmentRationale: 'Justification de l\'évaluation',
+    disinformationStatsTitle: 'L\'État de la Désinformation',
+    disinformationStatsSubtitle: 'Un bref aperçu de l\'exposition alarmante aux fausses informations dans notre monde numérique.',
+    cameroon: 'Cameroun',
+    africa: 'Afrique',
+    world: 'Monde',
+    exposurePercentage: 'Exposition à la désinformation (%)',
   },
   es: {
     uncoverTruth: 'Descubre la verdad en un clic',
@@ -148,6 +160,12 @@ export const translations = {
     confidenceLevel: 'Nivel de Confianza',
     confidenceExplanation: 'Esta puntuación representa la confianza de nuestra IA en su evaluación del origen de la imagen.',
     assessmentRationale: 'Justificación de la evaluación',
+    disinformationStatsTitle: 'El Estado de la Desinformación',
+    disinformationStatsSubtitle: 'Un breve resumen de la alarmante exposición a información falsa en nuestro mundo digital.',
+    cameroon: 'Camerún',
+    africa: 'África',
+    world: 'Mundo',
+    exposurePercentage: 'Exposición a la desinformación (%)',
   }
 };
 
