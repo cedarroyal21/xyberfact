@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function getScoreColor(score: number): string {
   if (score >= 70) {
-    return 'text-accent'; // green
+    return 'text-green-500'; // green
   }
   if (score >= 40) {
     return 'text-yellow-500'; // yellow

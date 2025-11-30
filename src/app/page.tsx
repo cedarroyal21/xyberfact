@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { Loader2, AlertTriangle, Info, CheckCircle } from 'lucide-react';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { analyzeUrl } from '@/app/actions';
 import type { AnalysisState } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -89,15 +89,15 @@ export default function Home() {
       <Header />
       <div className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <section className="text-center max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-foreground font-headline">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-foreground font-headline fade-in-up">
             {t('uncoverTruth')}
           </h1>
-          <p className="mt-4 text-lg md:text-xl text-muted-foreground">
+          <p className="mt-4 text-lg md:text-xl text-muted-foreground fade-in-up" style={{ animationDelay: '0.2s' }}>
             {t('subheading')}
           </p>
         </section>
 
-        <Card className="max-w-3xl mx-auto mt-8 shadow-lg">
+        <Card className="max-w-3xl mx-auto mt-8 shadow-lg fade-in-up" style={{ animationDelay: '0.4s' }}>
           <CardContent className="p-6">
             <form ref={formRef} action={formAction} className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-2">
@@ -120,7 +120,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <div className="max-w-6xl mx-auto mt-8">
+        <div className="max-w-6xl mx-auto mt-8 fade-in" style={{ animationDelay: '0.6s' }}>
             {pending ? <LoadingSkeleton /> : state.data && <AnalysisResults result={state.data} />}
         </div>
       </div>

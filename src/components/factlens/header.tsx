@@ -1,6 +1,7 @@
 import { ScanSearch } from 'lucide-react';
 import LanguageSwitcher from './language-switcher';
 import { useLanguage } from '@/contexts/language-context';
+import ThemeSwitcher from './theme-switcher';
 
 export function Header() {
   const { t } = useLanguage();
@@ -12,8 +13,9 @@ export function Header() {
             <ScanSearch className="h-7 w-7 text-primary" />
             <span className="font-headline">{t('factlens')}</span>
           </a>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             <LanguageSwitcher />
+            <ThemeSwitcher />
           </div>
         </div>
       </div>
