@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { LanguageProvider } from '@/contexts/language-context';
 import { ThemeProvider } from '@/contexts/theme-provider';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'XyberFact',
@@ -27,7 +28,9 @@ export default function RootLayout({
       <body className="font-body antialiased h-full">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LanguageProvider>
-            {children}
+            <FirebaseClientProvider>
+              {children}
+            </FirebaseClientProvider>
             <Toaster />
           </LanguageProvider>
         </ThemeProvider>

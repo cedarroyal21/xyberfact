@@ -1,7 +1,6 @@
 {
   "entities": {
     "WebsiteReport": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "WebsiteReport",
       "type": "object",
       "description": "Entity representing user reports of fake or misleading websites.",
@@ -22,7 +21,7 @@
         },
         "reporterId": {
           "type": "string",
-          "description": "Reference to the user who reported the website. (Relationship: User 1:N WebsiteReport)"
+          "description": "Reference to the user who reported the website."
         },
         "reason": {
           "type": "string",
@@ -34,11 +33,7 @@
         },
         "status": {
           "type": "string",
-          "description": "The status of the report (e.g., pending, under review, resolved).",
-          "format": "enum",
-          "items": {
-            "type": "string"
-          }
+          "description": "The status of the report (e.g., pending, under review, resolved)."
         }
       },
       "required": [
@@ -52,10 +47,9 @@
       ]
     },
     "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Entity representing a user of the FactLens application.",
+      "description": "Entity representing a user of the XyberFact application.",
       "properties": {
         "id": {
           "type": "string",
@@ -72,63 +66,32 @@
         },
         "joinDate": {
           "type": "string",
-          "description": "Date and time when the user joined FactLens.",
+          "description": "Date and time when the user joined XyberFact.",
           "format": "date-time"
         }
       },
       "required": [
-        "id",
-        "email",
-        "username",
-        "joinDate"
+        "id"
       ]
     }
   },
   "auth": {
     "providers": [
-      "password",
       "anonymous"
     ]
   },
   "firestore": {
-    "structure": [
+    "collections": [
       {
         "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profile information.  Path-based ownership, ensuring only the user can access their own data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            }
-          ]
-        }
+        "entity": "User",
+        "description": "Stores user profile information. Path-based ownership ensures only the user can access their own data."
       },
       {
         "path": "/users/{userId}/websiteReports/{reportId}",
-        "definition": {
-          "entityName": "WebsiteReport",
-          "schema": {
-            "$ref": "#/backend/entities/WebsiteReport"
-          },
-          "description": "Stores website reports submitted by users. Includes denormalized 'reporterId' for authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user submitting the report."
-            },
-            {
-              "name": "reportId",
-              "description": "The unique identifier of the website report."
-            }
-          ]
-        }
+        "entity": "WebsiteReport",
+        "description": "Stores website reports submitted by users. Includes denormalized 'reporterId' for authorization independence."
       }
-    ],
-    "reasoning": "The Firestore structure is designed to support the FactLens application's fact-checking browser extension. It focuses on enabling users to report fake or misleading websites, while adhering to the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules Are Not Filters).\n\n**Authorization Independence:** The `/users/{userId}/websiteReports/{reportId}` structure guarantees authorization independence.  A user can only create, read, update, or delete reports under their own user ID.  No `get()` calls are needed in security rules to verify ownership.  The `reporterId` field inside the `websiteReports` collection duplicates the information already available in the path, but formally fulfills the need to avoid database reads for authorization.\n\n**Clarity of Intent:** The path `/users/{userId}/websiteReports/{reportId}` clearly expresses ownership: Website reports are owned by the user identified by `userId`. This structure avoids mixing different access control schemes within a single collection, contributing to debuggability.\n\n**DBAC (No Custom Claims):** User roles or permissions are not stored in custom claims. Authorization is based on the `request.auth.uid` matching the `userId` in the path. This simplifies security rules and makes them easier to understand and maintain.\n\n**QAPs (Rules are not Filters):** The structure allows secure `list` operations. A user can list only their own website reports by querying `/users/{userId}/websiteReports`.  The security rules can enforce that only the authenticated user (`request.auth.uid`) can access their own reports, preventing unauthorized listing of other users' data.\n\n**Data Integrity and Predictability:**  The schema for `WebsiteReport` enforces required fields, preventing incomplete or invalid data.  The `status` field is used for explicit state management, avoiding the need to infer state from multiple fields.  Consistent naming conventions (e.g., `reporterId`) enhance predictability.\n\nIn Summary, the chosen structure prioritizes secure, scalable, and easily debuggable security rules by ensuring authorization independence, clarity of intent, and adherence to best practices for Firestore data modeling."
+    ]
   }
 }

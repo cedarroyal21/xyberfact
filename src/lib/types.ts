@@ -18,3 +18,8 @@ export type ImageAnalysisState = {
   data?: AnalyzeImageOriginOutput;
   error?: string;
 };
+
+export type ReportState = {
+  success?: boolean;
+  error?: string;
+};

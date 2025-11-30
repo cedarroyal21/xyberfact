@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useFormStatus } from 'react-dom';
-import { Loader2, AlertTriangle, Upload, Image as ImageIcon, FileText, ShieldOff, Users, HeartPulse } from 'lucide-react';
-import { analyzeUrl, analyzeImage } from '@/app/actions';
-import type { AnalysisState, ImageAnalysisState } from '@/lib/types';
+import { useFormStatus, useActionState } from 'react-dom';
+import { Loader2, AlertTriangle, Upload, Image as ImageIcon, FileText, ShieldOff, Users, HeartPulse, Flag } from 'lucide-react';
+import { analyzeUrl, analyzeImage, reportWebsite } from '@/app/actions';
+import type { AnalysisState, ImageAnalysisState, ReportState } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,9 +17,13 @@ import { useLanguage } from '@/contexts/language-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DisinformationStats } from '@/components/factlens/disinformation-stats';
 import NewsSection from '@/components/factlens/news-section';
+import { useUser, useAuth } from '@/firebase';
+import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
+import { Textarea } from '@/components/ui/textarea';
 
 const initialUrlState: AnalysisState = {};
 const initialImageState: ImageAnalysisState = {};
+const initialReportState: ReportState = {};
 
 function ImageUploadForm({ language }: { language: string }) {
   const { toast } = useToast();
@@ -149,6 +153,65 @@ function ImageUploadForm({ language }: { language: string }) {
   );
 }
 
+function ReportWebsiteForm() {
+  const { t, language } = useLanguage();
+  const [state, formAction] = useActionState(reportWebsite, initialReportState);
+  const { pending } = useFormStatus();
+  const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (state?.success) {
+      toast({
+        title: t('reportSuccessTitle'),
+        description: t('reportSuccessDescription'),
+      });
+      formRef.current?.reset();
+    } else if (state?.error) {
+      toast({
+        variant: 'destructive',
+        title: t('reportErrorTitle'),
+        description: state.error,
+      });
+    }
+  }, [state, toast, t]);
+  
+  return (
+    <form ref={formRef} action={formAction} className="space-y-4">
+      <input type="hidden" name="language" value={language} />
+      <Input
+        name="url"
+        type="url"
+        placeholder={t('reportUrlPlaceholder')}
+        required
+        className="text-base"
+      />
+      <Textarea
+        name="description"
+        placeholder={t('reportDescriptionPlaceholder')}
+        required
+        className="text-base"
+      />
+       <Button type="submit" disabled={pending} className="w-full">
+        {pending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t('submittingReport')}
+          </>
+        ) : (
+          t('submitReport')
+        )}
+      </Button>
+       {state?.error && (
+        <p className="text-sm text-destructive flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4" />
+          {state.error}
+        </p>
+      )}
+    </form>
+  );
+}
+
 const LoadingSkeleton = () => (
   <div className="space-y-8 animate-pulse mt-12">
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -181,6 +244,15 @@ export default function Home() {
   const [isUrlPending, setIsUrlPending] = useState(false);
   const { toast } = useToast();
   const urlFormRef = React.useRef<HTMLFormElement>(null);
+  
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
+  
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      initiateAnonymousSignIn(auth);
+    }
+  }, [user, isUserLoading, auth]);
 
   const handleUrlSubmit = async (formData: FormData) => {
     setIsUrlPending(true);
@@ -205,7 +277,6 @@ export default function Home() {
     }
   }, [urlState.data, isUrlPending]);
 
-
   return (
     <main className="flex flex-col min-h-screen bg-background">
       <Header />
@@ -223,7 +294,7 @@ export default function Home() {
         </section>
 
         <Tabs defaultValue="url" className="max-w-3xl mx-auto mt-8 fade-in-up" style={{ animationDelay: '0.6s' }}>
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="url">
               <FileText className="mr-2 h-4 w-4" />
               {t('analyzeUrl')}
@@ -231,6 +302,10 @@ export default function Home() {
             <TabsTrigger value="image">
               <ImageIcon className="mr-2 h-4 w-4" />
               {t('analyzeImage')}
+            </TabsTrigger>
+             <TabsTrigger value="report">
+              <Flag className="mr-2 h-4 w-4" />
+              {t('reportWebsite')}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="url">
@@ -271,6 +346,24 @@ export default function Home() {
              <Card>
               <CardContent className="p-6">
                 <ImageUploadForm language={language} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="report">
+             <Card>
+              <CardContent className="p-6">
+                {isUserLoading ? (
+                  <div className="flex justify-center items-center h-24">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : user ? (
+                   <ReportWebsiteForm />
+                ) : (
+                  <div className="text-center text-muted-foreground">
+                    <p>{t('authRequiredToReport')}</p>
+                    <Button onClick={() => initiateAnonymousSignIn(auth)} className="mt-4">{t('signInAnonymously')}</Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -347,7 +440,7 @@ export default function Home() {
 
       </div>
       <footer className="text-center p-4 text-sm text-muted-foreground">
-        © {new Date().getFullYear()} {t('factlens')}. {t('allRightsReserved')}
+        © {new Date().getFullYear()} {t('xyberfact')}. {t('allRightsReserved')}
       </footer>
     </main>
   );

@@ -1,4 +1,3 @@
-
 'use server';
 
 import { z } from 'zod';
@@ -6,7 +5,11 @@ import { analyzeWebpageContent } from '@/ai/flows/analyze-webpage-content';
 import { verifyFactualityOfClaims } from '@/ai/flows/verify-factuality-of-claims';
 import { evaluateSourceReliability } from '@/ai/flows/evaluate-source-reliability';
 import { analyzeImageOrigin } from '@/ai/flows/analyze-image-origin';
-import type { AnalysisState, ImageAnalysisState } from '@/lib/types';
+import type { AnalysisState, ImageAnalysisState, ReportState } from '@/lib/types';
+import { getFirebaseAdmin } from '@/firebase/server';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
+import { cookies } from 'next/headers';
 
 const UrlFormSchema = z.object({
   url: z.string().url({ message: 'Please enter a valid URL.' }),
@@ -17,6 +20,12 @@ const ImageFormSchema = z.object({
   image: z.string().startsWith('data:image/'),
   language: z.enum(['en', 'fr', 'es']),
 });
+
+const ReportFormSchema = z.object({
+  url: z.string().url({ message: 'Please enter a valid URL.' }),
+  description: z.string().min(10, { message: 'Please provide a more detailed description.' }),
+});
+
 
 export async function analyzeUrl(
   prevState: AnalysisState,
@@ -106,5 +115,52 @@ export async function analyzeImage(
       return { error: 'The request timed out. The server might be slow or unreachable.' };
     }
     return { error: e instanceof Error ? e.message : 'An unknown error occurred during analysis.' };
+  }
+}
+
+export async function reportWebsite(
+  prevState: ReportState,
+  formData: FormData,
+): Promise<ReportState> {
+  const validatedFields = ReportFormSchema.safeParse({
+    url: formData.get('url'),
+    description: formData.get('description'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      error: validatedFields.error.errors.map((e) => e.message).join(', '),
+    };
+  }
+
+  try {
+    const { url, description } = validatedFields.data;
+    const sessionCookie = cookies().get('__session')?.value;
+    if (!sessionCookie) {
+      throw new Error('Authentication is required to submit a report.');
+    }
+
+    const app = getFirebaseAdmin();
+    const auth = getAuth(app);
+    const decodedToken = await auth.verifySessionCookie(sessionCookie, true);
+    const reporterId = decodedToken.uid;
+
+    const db = getFirestore(app);
+    const reportRef = db.collection(`users/${reporterId}/websiteReports`).doc();
+
+    await reportRef.set({
+      id: reportRef.id,
+      url,
+      description,
+      reporterId,
+      reportDate: new Date().toISOString(),
+      reason: 'User-reported',
+      status: 'pending',
+    });
+
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { error: message };
   }
 }

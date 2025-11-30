@@ -1,117 +1,34 @@
-/**
- * This ruleset enforces a strict user-ownership security model for the FactLens application.
- *
- * Core Philosophy:
- * All user-generated data is treated as private and is accessible only to the user who created it.
- * The security model is designed to be simple, auditable, and performant by avoiding complex cross-document reads for authorization.
- *
- * Data Structure:
- * The data is organized hierarchically. A top-level 'users' collection stores user profiles.
- * All other user-specific data, such as 'websiteReports', is stored in subcollections nested under the corresponding user's document
- * (e.g., /users/{userId}/websiteReports/{reportId}). This creates a secure data silo for each user.
- *
- * Key Security Decisions:
- * - User Enumeration is Disabled: Listing the top-level '/users' collection is explicitly forbidden to protect user privacy.
- * - Path-Based Security: Authorization is primarily derived from the document path. A user's UID in the request must match the {userId} wildcard
- *   in the path they are trying to access.
- * - Authorization-Critical Data Validation: On document creation, rules enforce that internal ID fields (like 'id' on a User profile or 'reporterId'
- *   on a WebsiteReport) match the user ID from the path, ensuring data integrity for authorization purposes. These fields are immutable.
- * - Flexible Schema: In this prototyping phase, the rules do not validate the shape or data types of most fields, allowing for rapid frontend development.
- *   Only fields critical for authorization and relational integrity are validated.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ------------------------------------------------------------------------
     // Helper Functions
-    // ------------------------------------------------------------------------
-
-    /**
-     * Checks if the user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the authenticated user's UID matches the provided userId.
-     * This is the primary function for enforcing data ownership.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * Verifies that a document exists before an update or delete operation.
-     * This prevents unauthorized actions on non-existent paths.
-     */
-    function isExistingDoc() {
-      return resource != null;
+    function isNewUser(userId) {
+      return !exists(/databases/$(database)/documents/users/$(userId));
     }
 
-    /**
-     * Validates that the 'id' field of a new user document matches its path ID.
-     * Enforces data integrity on creation.
-     */
-    function isValidUserCreate(userId) {
-      return request.resource.data.id == userId;
-    }
-
-    /**
-     * Ensures the 'id' field of a user document cannot be changed after creation.
-     */
-    function isImmutableUserId() {
-      return request.resource.data.id == resource.data.id;
-    }
-    
-    /**
-     * Validates that the 'reporterId' field of a new report matches the owner's user ID from the path.
-     * Enforces the relationship between a user and their report on creation.
-     */
-    function isValidReportCreate(userId) {
-      return request.resource.data.reporterId == userId;
-    }
-    
-    /**
-     * Ensures the 'reporterId' field of a report cannot be changed after creation.
-     */
-    function isImmutableReporterId() {
-      return request.resource.data.reporterId == resource.data.reporterId;
-    }
-
-    // ------------------------------------------------------------------------
-    // Collection Rules
-    // ------------------------------------------------------------------------
-
-    /**
-     * @description Controls access to user profile documents.
-     * @path /users/{userId}
-     * @allow A user can create their own profile document, then read, update, or delete it. (e.g., auth.uid 'user123' can create '/users/user123').
-     * @deny A user cannot access another user's profile. Listing all users is forbidden to prevent user enumeration.
-     * @principle Restricts access to a user's own data tree and validates relational integrity.
-     */
+    // /users/{userId}
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId) && isValidUserCreate(userId);
-      allow update: if isOwner(userId) && isExistingDoc() && isImmutableUserId();
-      allow delete: if isOwner(userId) && isExistingDoc();
+      // Anyone can create their own user document.
+      allow create: if isSignedIn() && isOwner(userId) && isNewUser(userId);
+      // Only the owner can read, update or delete their own user document.
+      allow get, update, delete: if isSignedIn() && isOwner(userId);
     }
-
-    /**
-     * @description Controls access to website reports submitted by a user.
-     * @path /users/{userId}/websiteReports/{reportId}
-     * @allow A user can create, read, list, update, and delete their own reports. (e.g., auth.uid 'user123' can list '/users/user123/websiteReports').
-     * @deny A user cannot access reports submitted by any other user.
-     * @principle Enforces document ownership for all operations within a user-specific subcollection.
-     */
+    
+    // /users/{userId}/websiteReports/{reportId}
     match /users/{userId}/websiteReports/{reportId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidReportCreate(userId);
-      allow update: if isOwner(userId) && isExistingDoc() && isImmutableReporterId();
-      allow delete: if isOwner(userId) && isExistingDoc();
+      // Any authenticated user can create a report under their own user ID.
+      allow create: if isOwner(userId);
+      // Only the owner can read, update or delete their own reports.
+      allow get, list, update, delete: if isOwner(userId);
     }
   }
 }
