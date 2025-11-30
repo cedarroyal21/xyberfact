@@ -23,11 +23,11 @@ export const translations = {
   },
   fr: {
     uncoverTruth: 'Découvrez la vérité en un clic',
-    subheading: 'Notre outil alimenté par l\'IA analyse les pages Web pour évaluer la fiabilité des sources, vérifier les affirmations et exposer les biais potentiels. Collez une URL pour commencer.',
+    subheading: "Notre outil alimenté par l'IA analyse les pages Web pour évaluer la fiabilité des sources, vérifier les affirmations et exposer les biais potentiels. Collez une URL pour commencer.",
     analyze: 'Analyser',
     analyzing: 'Analyse en cours...',
     placeholder: 'https://exemple.com/article',
-    analysisFailed: 'L\'analyse a échoué',
+    analysisFailed: "L'analyse a échoué",
     allRightsReserved: 'Tous droits réservés.',
     contentBreakdown: 'Répartition du contenu',
     keyClaims: 'Revendications clés',
@@ -40,9 +40,31 @@ export const translations = {
     mediumTrust: 'Confiance moyenne',
     lowTrust: 'Faible confiance',
     overallReliability: 'Score de fiabilité global',
-    evaluationRationale: 'Justification de l\'évaluation',
+    evaluationRationale: "Justification de l'évaluation",
     factlens: 'FactLens'
   },
+  es: {
+    uncoverTruth: 'Descubre la verdad en un clic',
+    subheading: 'Nuestra herramienta impulsada por IA analiza páginas web para evaluar la fiabilidad de las fuentes, verificar afirmaciones y exponer posibles sesgos. Pega una URL para comenzar.',
+    analyze: 'Analizar',
+    analyzing: 'Analizando...',
+    placeholder: 'https://ejemplo.com/articulo',
+    analysisFailed: 'El análisis falló',
+    allRightsReserved: 'Todos los derechos reservados.',
+    contentBreakdown: 'Desglose del contenido',
+    keyClaims: 'Afirmaciones clave',
+    mainArguments: 'Argumentos principales',
+    factCheckAnalysis: 'Verificación de hechos y análisis de sesgos',
+    factualityAssessment: 'Evaluación de la factualidad',
+    potentialBiases: 'Sesgos potenciales',
+    trustScore: 'Puntuación de confianza',
+    highTrust: 'Confianza alta',
+    mediumTrust: 'Confianza media',
+    lowTrust: 'Confianza baja',
+    overallReliability: 'Puntuación de fiabilidad general',
+    evaluationRationale: 'Justificación de la evaluación',
+    factlens: 'FactLens'
+  }
 };
 
 export type TranslationKey = keyof (typeof translations)['en'];

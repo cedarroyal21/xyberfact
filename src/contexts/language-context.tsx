@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { translations, TranslationKey } from '@/lib/translations';
 
-type Language = 'en' | 'fr';
+type Language = 'en' | 'fr' | 'es';
 
 interface LanguageContextType {
   language: Language;
@@ -17,7 +17,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>('en');
 
   const t = (key: TranslationKey) => {
-    return translations[language][key] || translations['en'][key];
+    return translations[language]?.[key] || translations['en'][key];
   };
 
   return (
