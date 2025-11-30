@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { Loader2, AlertTriangle, ShieldOff, Users, HeartPulse, ArrowRight, Upload, Image as ImageIcon, FileText } from 'lucide-react';
+import { Loader2, AlertTriangle, Upload, Image as ImageIcon, FileText, ShieldOff, Users, HeartPulse } from 'lucide-react';
 import { analyzeUrl, analyzeImage } from '@/app/actions';
 import type { AnalysisState, ImageAnalysisState } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -32,24 +32,6 @@ function UrlSubmitButton() {
         </>
       ) : (
         t('analyze')
-      )}
-    </Button>
-  );
-}
-
-function ImageSubmitButton() {
-  const { pending } = useFormStatus();
-  const { t } = useLanguage();
-
-  return (
-    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          {t('analyzingImage')}
-        </>
-      ) : (
-        t('analyzeImage')
       )}
     </Button>
   );
@@ -101,11 +83,8 @@ function ImageUploadForm({ language }: { language: string }) {
   }, [imageState, toast, t]);
 
   useEffect(() => {
-    // Clear form and preview on successful submission
     if (imageState.data) {
-      formRef.current?.reset();
-      setImagePreview(null);
-      setHiddenImageData('');
+      // Don't reset form on success, keep showing results
     }
   }, [imageState.data]);
 
@@ -140,66 +119,81 @@ function ImageUploadForm({ language }: { language: string }) {
     e.preventDefault();
   };
 
-  return (
-    <div>
-      <form ref={formRef} action={formAction} className="space-y-4">
-        <input type="hidden" name="language" value={language} />
-        <input type="hidden" name="image" value={hiddenImageData} />
-        
-        <label
-          htmlFor="image-upload"
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          className="relative block w-full border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors"
-        >
-          {imagePreview ? (
-            <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto rounded-md" />
-          ) : (
-            <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-              <Upload className="h-10 w-10" />
-              <p>{t('dragAndDrop')}</p>
-              <p className="text-sm">{t('orClickToUpload')}</p>
-            </div>
-          )}
-        </label>
-        <Input
-          id="image-upload"
-          ref={fileInputRef}
-          name="image-file"
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="hidden"
-        />
-
-        <div className="flex justify-center">
-          <ImageSubmitButton />
-        </div>
-        
-        {imageState.error && (
-          <p className="text-sm text-destructive flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            {imageState.error}
-          </p>
+  const ImageSubmitButton = () => {
+    const { pending } = useFormStatus();
+    return (
+      <Button type="submit" disabled={pending || !hiddenImageData} className="w-full sm:w-auto">
+        {pending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t('analyzingImage')}
+          </>
+        ) : (
+          t('analyzeImage')
         )}
-        <ImageAnalysisDisplay state={imageState} preview={imagePreview} />
-      </form>
-    </div>
-  );
-}
-
-function ImageAnalysisDisplay({ state, preview }: { state: ImageAnalysisState, preview: string | null }) {
+      </Button>
+    );
+  };
+  
+  const ImageAnalysisDisplay = () => {
     const { pending } = useFormStatus();
 
     if (pending) {
-        return <LoadingSkeleton />;
+      return <LoadingSkeleton />;
     }
-
-    if (state.data) {
-        return <ImageAnalysisResult result={state.data} preview={preview} />;
+  
+    if (imageState.data) {
+      return <ImageAnalysisResult result={imageState.data} preview={imagePreview} />;
     }
-
+  
     return null;
+  }
+
+
+  return (
+    <form ref={formRef} action={formAction} className="space-y-4">
+      <input type="hidden" name="language" value={language} />
+      <input type="hidden" name="image" value={hiddenImageData} />
+
+      <label
+        htmlFor="image-upload"
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        className="relative block w-full border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors"
+      >
+        {imagePreview ? (
+          <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto rounded-md" />
+        ) : (
+          <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+            <Upload className="h-10 w-10" />
+            <p>{t('dragAndDrop')}</p>
+            <p className="text-sm">{t('orClickToUpload')}</p>
+          </div>
+        )}
+      </label>
+      <Input
+        id="image-upload"
+        ref={fileInputRef}
+        name="image-file"
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+        className="hidden"
+      />
+
+      <div className="flex justify-center">
+        <ImageSubmitButton />
+      </div>
+
+      {imageState.error && (
+        <p className="text-sm text-destructive flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4" />
+          {imageState.error}
+        </p>
+      )}
+      <ImageAnalysisDisplay />
+    </form>
+  );
 }
 
 
@@ -333,12 +327,6 @@ export default function Home() {
               <p className="text-muted-foreground">{t('publicHealthRisksText')}</p>
             </div>
           </div>
-          <div className="mt-16 text-center bg-card border rounded-xl p-8 shadow-sm">
-            <h3 className="text-2xl font-bold tracking-tight">{t('whyFactLensMatters')}</h3>
-            <p className="mt-3 max-w-3xl mx-auto text-muted-foreground">
-              {t('whyFactLensMattersText')}
-            </p>
-          </div>
         </section>
 
         <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12 text-center">
@@ -350,7 +338,6 @@ export default function Home() {
             <Button asChild className="mt-6">
               <a href="https://xyberclan-saas-website.vercel.app/" target="_blank" rel="noopener noreferrer">
                 {t('visitXyberclan')}
-                <ArrowRight className="ml-2 h-4 w-4" />
               </a>
             </Button>
           </div>
