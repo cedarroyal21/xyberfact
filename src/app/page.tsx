@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Loader2, AlertTriangle } from 'lucide-react';
+import Image from 'next/image';
 import { analyzeUrl } from '@/app/actions';
-import { generateVideoAction } from '@/app/video-actions';
 import type { AnalysisState } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,8 @@ import AnalysisResults from '@/components/factlens/analysis-results';
 import { Header } from '@/components/factlens/header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/contexts/language-context';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+
 
 const initialState: AnalysisState = {};
 
@@ -67,26 +69,8 @@ export default function Home() {
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const { pending } = useFormStatus();
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [videoError, setVideoError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function generateVideo() {
-      setVideoError(null);
-      try {
-        const result = await generateVideoAction(language);
-        if (result.url) {
-          setVideoUrl(result.url);
-        } else if (result.error) {
-          throw new Error(result.error);
-        }
-      } catch (error) {
-        console.error('Video generation failed:', error);
-        setVideoError(t('videoGenerationFailed'));
-      }
-    }
-    generateVideo();
-  }, [language, t]);
+  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
 
   useEffect(() => {
     if (state.error) {
@@ -104,7 +88,6 @@ export default function Home() {
     }
   }, [state.data, pending]);
 
-  const isVideoLoading = !videoUrl && !videoError;
 
   return (
     <main className="flex flex-col min-h-screen bg-background">
@@ -124,26 +107,15 @@ export default function Home() {
 
         <section className="max-w-4xl mx-auto mt-8 fade-in-up" style={{ animationDelay: '0.4s' }}>
           <Card className="shadow-lg overflow-hidden">
-            {isVideoLoading && (
-               <div className="aspect-video bg-muted flex flex-col items-center justify-center">
-                 <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                 <p className="mt-4 text-muted-foreground">{t('generatingVideo')}</p>
-               </div>
-            )}
-            {videoError && (
-              <div className="aspect-video bg-muted flex flex-col items-center justify-center">
-                <AlertTriangle className="h-12 w-12 text-destructive" />
-                <p className="mt-4 text-destructive">{videoError}</p>
-              </div>
-            )}
-            {videoUrl && (
-              <video
-                src={videoUrl}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-full object-cover"
+            {heroImage && (
+              <Image
+                src={heroImage.imageUrl}
+                alt={heroImage.description}
+                width={1200}
+                height={600}
+                className="w-full h-auto object-cover aspect-video"
+                data-ai-hint={heroImage.imageHint}
+                priority
               />
             )}
           </Card>
