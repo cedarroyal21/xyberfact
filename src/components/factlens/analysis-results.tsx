@@ -7,13 +7,27 @@ import {
 } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrustScoreDisplay } from './trust-score-display';
-import { Badge } from '@/components/ui/badge';
 import { FileText, Megaphone, Scale, ShieldQuestion, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useLanguage } from '@/contexts/language-context';
 
 interface AnalysisResultsProps {
   result: AnalysisResult;
 }
+
+const AnimatedListItem = ({
+  children,
+  index,
+}: {
+  children: React.ReactNode;
+  index: number;
+}) => (
+  <li
+    className="fade-in-up"
+    style={{ animationDelay: `${index * 100}ms` }}
+  >
+    {children}
+  </li>
+);
 
 export default function AnalysisResults({ result }: AnalysisResultsProps) {
   const { reliability, analysis, verification } = result;
@@ -29,7 +43,7 @@ export default function AnalysisResults({ result }: AnalysisResultsProps) {
       </div>
 
       <div className="lg:col-span-2 space-y-6">
-        <Card>
+        <Card className="fade-in-up" style={{ animationDelay: '200ms' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="text-primary" />
@@ -46,7 +60,9 @@ export default function AnalysisResults({ result }: AnalysisResultsProps) {
                 <AccordionContent>
                   <ul className="list-disc space-y-2 pl-6">
                     {analysis.keyClaims.map((claim, index) => (
-                      <li key={index}>{claim}</li>
+                      <AnimatedListItem key={index} index={index}>
+                        {claim}
+                      </AnimatedListItem>
                     ))}
                   </ul>
                 </AccordionContent>
@@ -58,7 +74,9 @@ export default function AnalysisResults({ result }: AnalysisResultsProps) {
                 <AccordionContent>
                   <ul className="list-disc space-y-2 pl-6">
                     {analysis.arguments.map((argument, index) => (
-                      <li key={index}>{argument}</li>
+                       <AnimatedListItem key={index} index={index}>
+                        {argument}
+                      </AnimatedListItem>
                     ))}
                   </ul>
                 </AccordionContent>
@@ -67,7 +85,7 @@ export default function AnalysisResults({ result }: AnalysisResultsProps) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="fade-in-up" style={{ animationDelay: '400ms' }}>
            <CardHeader>
              <CardTitle className="flex items-center gap-2">
               <ShieldQuestion className="text-primary" />
@@ -75,14 +93,10 @@ export default function AnalysisResults({ result }: AnalysisResultsProps) {
              </CardTitle>
            </CardHeader>
            <CardContent className="space-y-4">
-              <div>
-                <h3 className="font-semibold flex items-center gap-2"><ThumbsUp className="h-5 w-5 text-green-600"/> {t('factualityAssessment')}</h3>
-                <p className="text-muted-foreground mt-1">{verification.factualityAssessment}</p>
-              </div>
-              <div>
-                <h3 className="font-semibold flex items-center gap-2"><ThumbsDown className="h-5 w-5 text-destructive"/> {t('potentialBiases')}</h3>
-                <p className="text-muted-foreground mt-1">{verification.potentialBiases}</p>
-              </div>
+              <div className="overflow-hidden"><h3 className="font-semibold flex items-center gap-2 slide-up"><ThumbsUp className="h-5 w-5 text-green-600"/> {t('factualityAssessment')}</h3></div>
+              <p className="text-muted-foreground mt-1">{verification.factualityAssessment}</p>
+              <div className="overflow-hidden"><h3 className="font-semibold flex items-center gap-2 slide-up" style={{animationDelay: '100ms'}}><ThumbsDown className="h-5 w-5 text-destructive"/> {t('potentialBiases')}</h3></div>
+              <p className="text-muted-foreground mt-1">{verification.potentialBiases}</p>
            </CardContent>
         </Card>
       </div>
