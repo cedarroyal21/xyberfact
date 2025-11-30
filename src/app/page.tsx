@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/contexts/language-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DisinformationStats } from '@/components/factlens/disinformation-stats';
+import NewsSection from '@/components/factlens/news-section';
 
 const initialUrlState: AnalysisState = {};
 const initialImageState: ImageAnalysisState = {};
@@ -324,6 +325,10 @@ export default function Home() {
 
         <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12">
           <DisinformationStats />
+        </section>
+
+        <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12">
+          <NewsSection />
         </section>
 
         <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12 text-center">
