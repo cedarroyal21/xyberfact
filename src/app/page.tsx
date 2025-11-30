@@ -1,3 +1,129 @@
+'use client';
+
+import React, { useEffect } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { Loader2, AlertTriangle, Info, CheckCircle } from 'lucide-react';
+import { analyzeUrl } from '@/app/actions';
+import type { AnalysisState } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import AnalysisResults from '@/components/factlens/analysis-results';
+import { Header } from '@/components/factlens/header';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const initialState: AnalysisState = {};
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Analyzing...
+        </>
+      ) : (
+        'Analyze'
+      )}
+    </Button>
+  );
+}
+
+const LoadingSkeleton = () => (
+  <div className="space-y-8 animate-pulse mt-12">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <Card className="md:col-span-1">
+        <CardContent className="p-6">
+          <div className="flex flex-col items-center space-y-4">
+            <Skeleton className="h-32 w-32 rounded-full" />
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-6 w-32" />
+            <div className="w-full space-y-2 pt-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <div className="md:col-span-2 space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+      </div>
+    </div>
+  </div>
+);
+
 export default function Home() {
-  return <></>;
+  const [state, formAction] = useFormState(analyzeUrl, initialState);
+  const { toast } = useToast();
+  const formRef = React.useRef<HTMLFormElement>(null);
+  const { pending } = useFormStatus();
+
+  useEffect(() => {
+    if (state.error) {
+      toast({
+        variant: 'destructive',
+        title: 'Analysis Failed',
+        description: state.error,
+      });
+    }
+  }, [state, toast]);
+
+  // Reset form when new analysis is complete
+  useEffect(() => {
+    if (state.data && !pending) {
+      formRef.current?.reset();
+    }
+  }, [state.data, pending]);
+  
+  return (
+    <main className="flex flex-col min-h-screen bg-background">
+      <Header />
+      <div className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <section className="text-center max-w-3xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-foreground font-headline">
+            Uncover the Truth in a Click
+          </h1>
+          <p className="mt-4 text-lg md:text-xl text-muted-foreground">
+            Our AI-powered tool analyzes web pages to evaluate source reliability, verify claims, and expose potential bias. Paste a URL to start.
+          </p>
+        </section>
+
+        <Card className="max-w-3xl mx-auto mt-8 shadow-lg">
+          <CardContent className="p-6">
+            <form ref={formRef} action={formAction} className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  name="url"
+                  type="url"
+                  placeholder="https://example.com/article"
+                  required
+                  className="flex-grow text-base"
+                />
+                <SubmitButton />
+              </div>
+              {state.error && !pending && (
+                <p className="text-sm text-destructive flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  {state.error}
+                </p>
+              )}
+            </form>
+          </CardContent>
+        </Card>
+
+        <div className="max-w-6xl mx-auto mt-8">
+            {pending ? <LoadingSkeleton /> : state.data && <AnalysisResults result={state.data} />}
+        </div>
+      </div>
+      <footer className="text-center p-4 text-sm text-muted-foreground">
+        © {new Date().getFullYear()} FactLens. All rights reserved.
+      </footer>
+    </main>
+  );
 }
