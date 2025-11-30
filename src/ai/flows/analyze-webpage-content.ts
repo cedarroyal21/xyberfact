@@ -14,6 +14,7 @@ import {z} from 'genkit';
 const AnalyzeWebpageContentInputSchema = z.object({
   url: z.string().describe('The URL of the webpage to analyze.'),
   textContent: z.string().describe('The text content of the webpage.'),
+  language: z.enum(['en', 'fr', 'es']).describe('The language for the output.'),
 });
 export type AnalyzeWebpageContentInput = z.infer<
   typeof AnalyzeWebpageContentInputSchema
@@ -41,7 +42,7 @@ const analyzeWebpageContentPrompt = ai.definePrompt({
   prompt: `You are an AI assistant designed to analyze webpage content and extract key information.
 
   Analyze the following webpage content and identify the key claims and arguments presented.
-  Also, provide a summary of the webpage content.
+  Also, provide a summary of the webpage content. Your response MUST be in the following language: {{{language}}}.
 
   URL: {{{url}}}
   Content: {{{textContent}}}

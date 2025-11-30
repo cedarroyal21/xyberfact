@@ -9,6 +9,7 @@ import type { AnalysisState } from '@/lib/types';
 
 const FormSchema = z.object({
   url: z.string().url({ message: 'Please enter a valid URL.' }),
+  language: z.enum(['en', 'fr', 'es']),
 });
 
 export async function analyzeUrl(
@@ -17,6 +18,7 @@ export async function analyzeUrl(
 ): Promise<AnalysisState> {
   const validatedFields = FormSchema.safeParse({
     url: formData.get('url'),
+    language: formData.get('language'),
   });
 
   if (!validatedFields.success) {
@@ -24,7 +26,7 @@ export async function analyzeUrl(
       error: validatedFields.error.errors.map((e) => e.message).join(', '),
     };
   }
-  const { url } = validatedFields.data;
+  const { url, language } = validatedFields.data;
 
   try {
     const controller = new AbortController();
@@ -56,9 +58,9 @@ export async function analyzeUrl(
     const truncatedContent = textContent.substring(0, 15000);
 
     const [reliability, analysis, verification] = await Promise.all([
-      evaluateSourceReliability({ url, pageContent: truncatedContent }),
-      analyzeWebpageContent({ url, textContent: truncatedContent }),
-      verifyFactualityOfClaims({ text: truncatedContent }),
+      evaluateSourceReliability({ url, pageContent: truncatedContent, language }),
+      analyzeWebpageContent({ url, textContent: truncatedContent, language }),
+      verifyFactualityOfClaims({ text: truncatedContent, language }),
     ]);
 
     return {

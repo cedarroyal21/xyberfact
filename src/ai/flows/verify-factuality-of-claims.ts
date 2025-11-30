@@ -13,6 +13,7 @@ import {z} from 'genkit';
 
 const VerifyFactualityOfClaimsInputSchema = z.object({
   text: z.string().describe('The text content of the webpage to verify.'),
+  language: z.enum(['en', 'fr', 'es']).describe('The language for the output.'),
 });
 export type VerifyFactualityOfClaimsInput = z.infer<
   typeof VerifyFactualityOfClaimsInputSchema
@@ -36,7 +37,7 @@ const prompt = ai.definePrompt({
   name: 'verifyFactualityOfClaimsPrompt',
   input: {schema: VerifyFactualityOfClaimsInputSchema},
   output: {schema: VerifyFactualityOfClaimsOutputSchema},
-  prompt: `You are an expert fact-checker. Please assess the factuality of the following text and identify any potential biases or inaccuracies.\n\nText: {{{text}}}`,
+  prompt: `You are an expert fact-checker. Please assess the factuality of the following text and identify any potential biases or inaccuracies. Your response MUST be in the following language: {{{language}}}.\n\nText: {{{text}}}`,
 });
 
 const verifyFactualityOfClaimsFlow = ai.defineFlow(

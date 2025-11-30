@@ -61,7 +61,7 @@ const LoadingSkeleton = () => (
 );
 
 export default function Home() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [state, formAction] = useFormState(analyzeUrl, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -100,6 +100,7 @@ export default function Home() {
         <Card className="max-w-3xl mx-auto mt-8 shadow-lg fade-in-up" style={{ animationDelay: '0.4s' }}>
           <CardContent className="p-6">
             <form ref={formRef} action={formAction} className="space-y-4">
+              <input type="hidden" name="language" value={language} />
               <div className="flex flex-col sm:flex-row gap-2">
                 <Input
                   name="url"
