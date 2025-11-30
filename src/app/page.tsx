@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { Loader2, AlertTriangle, Video } from 'lucide-react';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { analyzeUrl } from '@/app/actions';
 import { generateVideoAction } from '@/app/video-actions';
 import type { AnalysisState } from '@/lib/types';
@@ -68,12 +68,10 @@ export default function Home() {
   const formRef = React.useRef<HTMLFormElement>(null);
   const { pending } = useFormStatus();
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [isVideoLoading, setIsVideoLoading] = useState(true);
   const [videoError, setVideoError] = useState<string | null>(null);
 
   useEffect(() => {
     async function generateVideo() {
-      setIsVideoLoading(true);
       setVideoError(null);
       try {
         const result = await generateVideoAction(language);
@@ -85,8 +83,6 @@ export default function Home() {
       } catch (error) {
         console.error('Video generation failed:', error);
         setVideoError(t('videoGenerationFailed'));
-      } finally {
-        setIsVideoLoading(false);
       }
     }
     generateVideo();
@@ -107,6 +103,8 @@ export default function Home() {
       formRef.current?.reset();
     }
   }, [state.data, pending]);
+
+  const isVideoLoading = !videoUrl && !videoError;
 
   return (
     <main className="flex flex-col min-h-screen bg-background">
@@ -132,13 +130,13 @@ export default function Home() {
                  <p className="mt-4 text-muted-foreground">{t('generatingVideo')}</p>
                </div>
             )}
-            {videoError && !isVideoLoading && (
+            {videoError && (
               <div className="aspect-video bg-muted flex flex-col items-center justify-center">
                 <AlertTriangle className="h-12 w-12 text-destructive" />
                 <p className="mt-4 text-destructive">{videoError}</p>
               </div>
             )}
-            {videoUrl && !isVideoLoading && (
+            {videoUrl && (
               <video
                 src={videoUrl}
                 autoPlay

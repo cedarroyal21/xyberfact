@@ -9,9 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import * as fs from 'fs';
-import { Readable } from 'stream';
-import { MediaPart } from 'genkit';
+import type { MediaPart } from 'genkit';
 
 const GenerateVideoInputSchema = z.object({
   prompt: z.string().describe('The prompt to generate the video from.'),
@@ -48,12 +46,8 @@ const generateVideoFlow = ai.defineFlow(
   },
   async ({ prompt }) => {
     let { operation } = await ai.generate({
-      model: 'googleai/veo-2.0-generate-001',
+      model: 'googleai/veo-3.0-generate-preview',
       prompt,
-      config: {
-        durationSeconds: 5,
-        aspectRatio: '16:9',
-      },
     });
 
     if (!operation) {
