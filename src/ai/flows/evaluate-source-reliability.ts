@@ -26,7 +26,7 @@ const EvaluateSourceReliabilityOutputSchema = z.object({
     .describe('A score from 0 to 100 indicating the reliability of the source.'),
   evaluationRationale: z
     .string()
-    .describe('Explanation of why the source received the given reliability score.'),
+    .describe('A brief and clear explanation (2-3 sentences) for the given reliability score.'),
 });
 export type EvaluateSourceReliabilityOutput = z.infer<typeof EvaluateSourceReliabilityOutputSchema>;
 
@@ -54,7 +54,7 @@ const evaluateSourceReliabilityPrompt = ai.definePrompt({
   The provided webpage has no textual content.
   {{/if}}
 
-  Provide a reliability score between 0 and 100, where 0 is completely unreliable and 100 is highly reliable. Explain the rationale behind the assigned score, highlighting the strengths and weaknesses of the source.
+  Provide a reliability score between 0 and 100, where 0 is completely unreliable and 100 is highly reliable. Provide a brief and clear explanation (2-3 sentences) for the assigned score.
   `,
 });
 

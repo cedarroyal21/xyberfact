@@ -20,8 +20,8 @@ export type VerifyFactualityOfClaimsInput = z.infer<
 >;
 
 const VerifyFactualityOfClaimsOutputSchema = z.object({
-  factualityAssessment: z.string().describe('An assessment of the factuality of claims in the text.'),
-  potentialBiases: z.string().describe('Identification of potential biases or inaccuracies.'),
+  factualityAssessment: z.string().describe('A brief and clear assessment of the factuality of claims (2-3 sentences).'),
+  potentialBiases: z.string().describe('A brief and clear identification of potential biases or inaccuracies (2-3 sentences).'),
 });
 export type VerifyFactualityOfClaimsOutput = z.infer<
   typeof VerifyFactualityOfClaimsOutputSchema
@@ -37,7 +37,14 @@ const prompt = ai.definePrompt({
   name: 'verifyFactualityOfClaimsPrompt',
   input: {schema: VerifyFactualityOfClaimsInputSchema},
   output: {schema: VerifyFactualityOfClaimsOutputSchema},
-  prompt: `You are an expert fact-checker. Please assess the factuality of the following text and identify any potential biases or inaccuracies. Your response MUST be in the following language: {{{language}}}.\n\nText: {{{text}}}`,
+  prompt: `You are an expert fact-checker. Please assess the factuality of the following text. Your response must be brief, clear, and explanatory.
+
+  Your response MUST be in the following language: {{{language}}}.
+  
+  - Provide a brief assessment (2-3 sentences) of the text's factuality.
+  - Briefly identify (2-3 sentences) any potential biases or inaccuracies.
+
+  Text: {{{text}}}`,
 });
 
 const verifyFactualityOfClaimsFlow = ai.defineFlow(

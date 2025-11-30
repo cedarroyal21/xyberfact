@@ -21,9 +21,9 @@ export type AnalyzeWebpageContentInput = z.infer<
 >;
 
 const AnalyzeWebpageContentOutputSchema = z.object({
-  summary: z.string().describe('A summary of the webpage content.'),
-  keyClaims: z.array(z.string()).describe('The key claims made in the webpage.'),
-  arguments: z.array(z.string()).describe('The main arguments presented in the webpage.'),
+  summary: z.string().describe('A brief and clear summary of the webpage content (2-3 sentences).'),
+  keyClaims: z.array(z.string()).describe('A list of the main claims, stated clearly and briefly.'),
+  arguments: z.array(z.string()).describe('A list of the main arguments, stated clearly and briefly.'),
 });
 export type AnalyzeWebpageContentOutput = z.infer<
   typeof AnalyzeWebpageContentOutputSchema
@@ -39,17 +39,15 @@ const analyzeWebpageContentPrompt = ai.definePrompt({
   name: 'analyzeWebpageContentPrompt',
   input: {schema: AnalyzeWebpageContentInputSchema},
   output: {schema: AnalyzeWebpageContentOutputSchema},
-  prompt: `You are an AI assistant designed to analyze webpage content and extract key information.
+  prompt: `You are an AI assistant designed to analyze webpage content and extract key information. Your task is to provide a brief and clear analysis.
 
-  Analyze the following webpage content and identify the key claims and arguments presented.
-  Also, provide a summary of the webpage content. Your response MUST be in the following language: {{{language}}}.
+  Analyze the following webpage content. Your response MUST be in the following language: {{{language}}}.
+
+  - The summary should be concise, no more than two or three sentences.
+  - Each key claim and argument should be stated clearly and briefly.
 
   URL: {{{url}}}
-  Content: {{{textContent}}}
-
-  Summary:
-  Key Claims:
-  Arguments:`,
+  Content: {{{textContent}}}`,
 });
 
 const analyzeWebpageContentFlow = ai.defineFlow(
