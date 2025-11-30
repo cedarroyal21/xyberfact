@@ -81,42 +81,12 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-function ImageUploadFormInner({ imageState }: { imageState: ImageAnalysisState }) {
-  const { pending } = useFormStatus();
-  const formRef = useRef<HTMLFormElement>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [hiddenImageData, setHiddenImageData] = useState<string>('');
-
-  useEffect(() => {
-    if (imageState.data && !pending) {
-      formRef.current?.reset();
-      setImagePreview(null);
-      setHiddenImageData('');
-    }
-  }, [imageState.data, pending]);
-  return (
-    <>
-      <input type="hidden" name="image" value={hiddenImageData} />
-      <LoadingIndicatorAndResults
-        pending={pending}
-        data={imageState.data}
-        imagePreview={imagePreview}
-      />
-    </>
-  );
-}
-
-const LoadingIndicatorAndResults = ({ pending, data, imagePreview }: { pending: boolean; data: ImageAnalysisState['data'], imagePreview: string | null }) => {
-  if (pending) return <LoadingSkeleton />;
-  if (data) return <ImageAnalysisResult result={data} preview={imagePreview} />;
-  return null;
-};
-
 function ImageUploadForm({ language }: { language: string }) {
   const [imageState, formAction] = useActionState(analyzeImage, initialImageState);
   const { toast } = useToast();
   const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [hiddenImageData, setHiddenImageData] = useState<string>('');
 
@@ -129,6 +99,15 @@ function ImageUploadForm({ language }: { language: string }) {
       });
     }
   }, [imageState, toast, t]);
+
+  useEffect(() => {
+    // Clear form and preview on successful submission
+    if (imageState.data) {
+      formRef.current?.reset();
+      setImagePreview(null);
+      setHiddenImageData('');
+    }
+  }, [imageState.data]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -163,7 +142,7 @@ function ImageUploadForm({ language }: { language: string }) {
 
   return (
     <div>
-      <form action={formAction} className="space-y-4">
+      <form ref={formRef} action={formAction} className="space-y-4">
         <input type="hidden" name="language" value={language} />
         <input type="hidden" name="image" value={hiddenImageData} />
         
@@ -203,11 +182,26 @@ function ImageUploadForm({ language }: { language: string }) {
             {imageState.error}
           </p>
         )}
-        <LoadingIndicatorAndResults pending={false} data={imageState.data} imagePreview={imagePreview} />
+        <ImageAnalysisDisplay state={imageState} preview={imagePreview} />
       </form>
     </div>
   );
 }
+
+function ImageAnalysisDisplay({ state, preview }: { state: ImageAnalysisState, preview: string | null }) {
+    const { pending } = useFormStatus();
+
+    if (pending) {
+        return <LoadingSkeleton />;
+    }
+
+    if (state.data) {
+        return <ImageAnalysisResult result={state.data} preview={preview} />;
+    }
+
+    return null;
+}
+
 
 export default function Home() {
   const { t, language } = useLanguage();
