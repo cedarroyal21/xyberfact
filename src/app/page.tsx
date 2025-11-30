@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import React, { useEffect, useState, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Loader2, AlertTriangle, ShieldOff, Users, HeartPulse, ArrowRight, Upload, Image as ImageIcon, FileText } from 'lucide-react';
 import { analyzeUrl, analyzeImage } from '@/app/actions';
 import type { AnalysisState, ImageAnalysisState } from '@/lib/types';
@@ -82,7 +82,7 @@ const LoadingSkeleton = () => (
 );
 
 function ImageUploadForm({ language }: { language: string }) {
-  const [imageState, formAction] = useFormState(analyzeImage, initialImageState);
+  const [imageState, formAction] = useActionState(analyzeImage, initialImageState);
   const { toast } = useToast();
   const { t } = useLanguage();
   const formRef = useRef<HTMLFormElement>(null);
@@ -190,7 +190,7 @@ function ImageUploadForm({ language }: { language: string }) {
 
 export default function Home() {
   const { t, language } = useLanguage();
-  const [urlState, urlFormAction] = useFormState(analyzeUrl, initialUrlState);
+  const [urlState, urlFormAction] = useActionState(analyzeUrl, initialUrlState);
   const { toast } = useToast();
   const urlFormRef = React.useRef<HTMLFormElement>(null);
   const { pending: urlPending } = useFormStatus();
