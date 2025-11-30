@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Loader2, AlertTriangle, ShieldOff, Users, HeartPulse } from 'lucide-react';
-import Image from 'next/image';
 import { analyzeUrl } from '@/app/actions';
 import type { AnalysisState } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -14,8 +13,6 @@ import AnalysisResults from '@/components/factlens/analysis-results';
 import { Header } from '@/components/factlens/header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/contexts/language-context';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-
 
 const initialState: AnalysisState = {};
 
@@ -70,8 +67,6 @@ export default function Home() {
   const formRef = React.useRef<HTMLFormElement>(null);
   const { pending } = useFormStatus();
 
-  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-image');
-
   useEffect(() => {
     if (state.error) {
       toast({
@@ -103,22 +98,6 @@ export default function Home() {
           >
             {t('subheading')}
           </p>
-        </section>
-
-        <section className="max-w-4xl mx-auto mt-8 fade-in-up" style={{ animationDelay: '0.4s' }}>
-          <Card className="shadow-lg overflow-hidden rounded-xl">
-            {heroImage && (
-              <Image
-                src={heroImage.imageUrl}
-                alt={heroImage.description}
-                width={1200}
-                height={600}
-                className="w-full h-auto object-cover aspect-video"
-                data-ai-hint={heroImage.imageHint}
-                priority
-              />
-            )}
-          </Card>
         </section>
 
         <Card
