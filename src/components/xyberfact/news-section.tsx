@@ -32,11 +32,11 @@ export default function NewsSection() {
 
   return (
     <div>
-      <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground font-headline">
+      <div className="text-center mb-8 sm:mb-12">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground font-headline">
           {t('newsTitle')}
         </h2>
-        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+        <p className="mt-3 sm:mt-4 max-w-2xl mx-auto text-base sm:text-lg text-muted-foreground">
           {t('newsSubtitle')}
         </p>
       </div>
@@ -52,7 +52,7 @@ export default function NewsSection() {
                 />
             </div>
             <CardHeader>
-              <CardTitle>{t(item.titleKey as any)}</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">{t(item.titleKey as any)}</CardTitle>
             </CardHeader>
             <CardContent className="flex-grow">
               <p className="text-muted-foreground text-sm">{t(item.descriptionKey as any)}</p>
@@ -70,3 +70,5 @@ export default function NewsSection() {
     </div>
   );
 }
+
+    

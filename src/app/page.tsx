@@ -16,7 +16,8 @@ import { useLanguage } from '@/contexts/language-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DisinformationStats } from '@/components/xyberfact/disinformation-stats';
 import NewsSection from '@/components/xyberfact/news-section';
-import { useUser, useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { useUser, useAuth, useFirestore } from '@/firebase';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
 import { Textarea } from '@/components/ui/textarea';
 import { collection } from 'firebase/firestore';
@@ -129,7 +130,7 @@ function ImageUploadForm({ language }: { language: string }) {
       />
 
       <div className="flex justify-center">
-         <Button type="submit" disabled={isPending || !imagePreview} className="w-full sm:w-auto">
+         <Button type="submit" disabled={isPending || !imagePreview} className="w-full">
           {isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -162,19 +163,32 @@ function ReportWebsiteForm() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
-  const reportWebsite = async (formData: FormData): Promise<ReportState> => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsPending(true);
+    setState(initialReportState);
+
+    const formData = new FormData(event.currentTarget);
     const url = formData.get('url') as string;
     const description = formData.get('description') as string;
 
     if (!user) {
-      return { error: 'Authentication is required to submit a report.' };
+      setState({ error: 'Authentication is required to submit a report.' });
+      setIsPending(false);
+      return;
     }
-     if (!url || !description) {
-      return { error: 'Please fill out all fields.' };
+    if (!url || !description) {
+      setState({ error: 'Please fill out all fields.' });
+      setIsPending(false);
+      return;
+    }
+    if (!firestore) {
+      setState({ error: 'Firestore not initialized' });
+      setIsPending(false);
+      return;
     }
 
     try {
-      if (!firestore) throw new Error('Firestore not initialized');
       const reportRef = collection(firestore, `users/${user.uid}/websiteReports`);
       const newReport = {
         url,
@@ -185,29 +199,24 @@ function ReportWebsiteForm() {
         status: 'pending',
       };
       
-      const docRef = await addDocumentNonBlocking(reportRef, newReport);
-      
-      // Update with the generated ID.
-      // This is a non-blocking update as well.
-      // updateDocumentNonBlocking(docRef, { id: docRef.id });
+      // We don't await here for optimistic UI updates.
+      addDocumentNonBlocking(reportRef, newReport)
+        .then(() => {
+          setState({ success: true });
+          setIsPending(false);
+        })
+        .catch((error) => {
+          const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+          setState({ error: message });
+          setIsPending(false);
+        });
 
-      return { success: true };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An unknown error occurred.';
-      return { error: message };
+      setState({ error: message });
+      setIsPending(false);
     }
   }
-
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsPending(true);
-    setState(initialReportState);
-    const formData = new FormData(event.currentTarget);
-    const result = await reportWebsite(formData);
-    setState(result);
-    setIsPending(false);
-  };
   
   useEffect(() => {
     if (state?.success) {
@@ -332,11 +341,11 @@ export default function Home() {
       <Header />
       <div className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <section className="text-center max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-foreground font-headline fade-in-up">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tighter text-foreground font-headline fade-in-up">
             {t('uncoverTruth')}
           </h1>
           <p
-            className="mt-4 text-lg md:text-xl text-muted-foreground fade-in-up"
+            className="mt-4 text-base sm:text-lg md:text-xl text-muted-foreground fade-in-up"
             style={{ animationDelay: '0.2s' }}
           >
             {t('subheading')}
@@ -360,48 +369,52 @@ export default function Home() {
           </TabsList>
           <TabsContent value="url">
             <Card>
-              <CardContent className="p-6">
-                <form ref={urlFormRef} action={handleUrlSubmit} className="space-y-4">
+              <CardContent className="p-4 sm:p-6">
+                <form ref={urlFormRef} action={handleUrlSubmit} className="space-y-4 sm:space-y-0 sm:flex sm:gap-2">
                   <input type="hidden" name="language" value={language} />
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Input
-                      name="url"
-                      type="url"
-                      placeholder={t('placeholder')}
-                      required
-                      className="flex-grow text-base"
-                    />
-                     <Button type="submit" disabled={isUrlPending} className="w-full sm:w-auto">
-                      {isUrlPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {t('analyzing')}
-                        </>
-                      ) : (
-                        t('analyze')
-                      )}
-                    </Button>
-                  </div>
+                  <Input
+                    name="url"
+                    type="url"
+                    placeholder={t('placeholder')}
+                    required
+                    className="flex-grow text-base"
+                  />
+                   <Button type="submit" disabled={isUrlPending} className="w-full sm:w-auto flex-shrink-0">
+                    {isUrlPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t('analyzing')}
+                      </>
+                    ) : (
+                      t('analyze')
+                    )}
+                  </Button>
                   {urlState.error && !isUrlPending && (
-                    <p className="text-sm text-destructive flex items-center gap-2">
+                    <p className="text-sm text-destructive flex items-center gap-2 sm:hidden">
                       <AlertTriangle className="h-4 w-4" />
                       {urlState.error}
                     </p>
                   )}
                 </form>
+                 {urlState.error && !isUrlPending && (
+                    <p className="text-sm text-destructive items-center gap-2 hidden sm:flex pt-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      {urlState.error}
+                    </p>
+                  )}
               </CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="image">
              <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <ImageUploadForm language={language} />
               </CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="report">
              <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 {isUserLoading ? (
                   <div className="flex justify-center items-center h-24">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -420,18 +433,18 @@ export default function Home() {
         </Tabs>
 
         <div
-          className="max-w-6xl mx-auto mt-8 fade-in"
+          className="max-w-6xl mx-auto mt-8 md:mt-12"
           style={{ animationDelay: '0.8s' }}
         >
           {isUrlPending ? <LoadingSkeleton /> : urlState.data && <AnalysisResults result={urlState.data} />}
         </div>
         
-        <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground font-headline">
+        <section className="max-w-5xl mx-auto mt-16 py-8 sm:py-12">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground font-headline">
               {t('consequencesTitle')}
             </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+            <p className="mt-3 sm:mt-4 max-w-2xl mx-auto text-base sm:text-lg text-muted-foreground">
               {t('consequencesSubtitle')}
             </p>
           </div>
@@ -442,8 +455,8 @@ export default function Home() {
                   <ShieldOff className="h-8 w-8" />
                 </div>
               </div>
-              <h3 className="text-xl font-semibold mb-2">{t('erosionOfTrust')}</h3>
-              <p className="text-muted-foreground">{t('erosionOfTrustText')}</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">{t('erosionOfTrust')}</h3>
+              <p className="text-muted-foreground text-sm sm:text-base">{t('erosionOfTrustText')}</p>
             </div>
             <div className="fade-in-up" style={{ animationDelay: '0.4s' }}>
               <div className="flex justify-center items-center mb-4">
@@ -451,8 +464,8 @@ export default function Home() {
                   <Users className="h-8 w-8" />
                 </div>
               </div>
-              <h3 className="text-xl font-semibold mb-2">{t('socialPolarization')}</h3>
-              <p className="text-muted-foreground">{t('socialPolarizationText')}</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">{t('socialPolarization')}</h3>
+              <p className="text-muted-foreground text-sm sm:text-base">{t('socialPolarizationText')}</p>
             </div>
             <div className="fade-in-up" style={{ animationDelay: '0.6s' }}>
               <div className="flex justify-center items-center mb-4">
@@ -460,24 +473,24 @@ export default function Home() {
                   <HeartPulse className="h-8 w-8" />
                 </div>
               </div>
-              <h3 className="text-xl font-semibold mb-2">{t('publicHealthRisks')}</h3>
-              <p className="text-muted-foreground">{t('publicHealthRisksText')}</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">{t('publicHealthRisks')}</h3>
+              <p className="text-muted-foreground text-sm sm:text-base">{t('publicHealthRisksText')}</p>
             </div>
           </div>
         </section>
 
-        <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12">
+        <section className="max-w-5xl mx-auto mt-8 sm:mt-16 py-8 sm:py-12">
           <DisinformationStats />
         </section>
 
-        <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12">
+        <section className="max-w-5xl mx-auto mt-8 sm:mt-16 py-8 sm:py-12">
           <NewsSection />
         </section>
 
-        <section className="max-w-5xl mx-auto mt-16 md:mt-24 py-12 text-center">
-          <div className="bg-card border rounded-xl p-8 shadow-sm">
-            <h3 className="text-2xl font-bold tracking-tight">{t('developedBy')}</h3>
-            <p className="mt-3 max-w-3xl mx-auto text-muted-foreground">
+        <section className="max-w-5xl mx-auto mt-8 sm:mt-16 py-8 sm:py-12 text-center">
+          <div className="bg-card border rounded-xl p-6 sm:p-8 shadow-sm">
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight">{t('developedBy')}</h3>
+            <p className="mt-3 max-w-3xl mx-auto text-muted-foreground text-sm sm:text-base">
               {t('xyberclanMission')}
             </p>
             <Button asChild className="mt-6">
@@ -495,3 +508,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
